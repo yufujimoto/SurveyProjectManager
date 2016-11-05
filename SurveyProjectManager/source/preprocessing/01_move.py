@@ -37,11 +37,11 @@ def main(indir, outdir, pref=""):
     # Get image files included in input directory.
     files = getFilesWithExt(indir,".JPG")
     moveToDestination(files, outdir, pref, num)
-        
+    
     num = count
     files = getFilesWithExt(indir,".ARW")
     moveToDestination(files, outdir, pref, num)
-        
+    
     logfl = open(os.path.join(outdir, "log.txt"), "w")
     logfl.write("count:" + str(num))
     logfl.close()
@@ -53,9 +53,8 @@ def moveToDestination(infiles, outdir, pref, num):
         filename = os.path.basename(file)
         extension = os.path.splitext(file)[1]
         
-        # Give a prefix with the parent directory name if not asigned.
-        if pref =="" :
-            pref = os.path.basename(os.path.abspath(os.path.join(file, os.pardir)))
+        # Give a prefix with the parent directory name.
+        pref = os.path.basename(os.path.abspath(os.path.join(file, os.pardir)))
         
         # Give a new file name.
         newdir = os.path.join(outdir, extension.strip("."))
@@ -68,7 +67,7 @@ def moveToDestination(infiles, outdir, pref, num):
         newfile = os.path.join(newdir, str(pref) + "_" + str("{0:0>6}".format(num)) + str(extension))
         
         # Move to destination directory
-        shutil.move(file, newfile)
+        shutil.copy(file, newfile)
         
         # Increment the count number
         num += 1
