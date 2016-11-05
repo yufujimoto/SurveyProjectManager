@@ -7,10 +7,10 @@
 #usage          :sh process.sh
 #==============================================================================
 
-# << 1. Move image files >>.
+# << 1. Move image files >>
 srcdir="/var/www/html/SurveyProjectManager/SurveyProjectManager/source/preprocessing"
-indir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/DayToDay"
-outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Consolidation/Images"
+indir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/DayToDay/Photo"
+outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/Image/Consolidation/Materials"
 
 # Input directory structure is below:
 # ==============================================
@@ -20,16 +20,12 @@ outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Consolidation/Images"
 # |   +--- [aquired image file 2]
 # |   +--- [aquired image file 3]
 # |   .
-# |   .
-# |   .
 # |   +--- [aquired image file n]
 # |
 # +---[serial number of the digitizing device 2]
 # |   +--- [aquired image file 1]
 # |   +--- [aquired image file 2]
 # |   +--- [aquired image file 3]
-# |   .
-# |   .
 # |   .
 # |   +--- [aquired image file n]
 # |
@@ -45,4 +41,5 @@ outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Consolidation/Images"
 
 python $srcdir"01_move.py" $indir $outdir
 
-
+# << 2. Get QR information >>
+python $srcdir"02_readQr.py" $outdir
