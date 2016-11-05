@@ -1,0 +1,89 @@
+@font-face {
+	font-family: 'HuiFont';
+	src:
+		url('bootstrap/fonts/HuiFont.ttf') format('truetype'),
+		url('bootstrap/fonts/HuiFont.otf') format('opentype'),
+		url('bootstrap/fonts/HuiFont.woff') format('woff') ;
+		
+}
+
+body {
+  padding-top: 30px;
+  padding-bottom: 30px;
+  width: auto;
+  margin: 0 auto;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+.theme-showcase .navbar .container {
+  width: auto;
+}
+
+p {
+  font-size: 100%;
+  line-height: 1.5;
+}
+
+.caption{
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.map {
+	height: 380px;
+	width: 750px
+}
+
+.map2 {
+	height: 400px;
+	width: 550px
+}
+
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  background: red;
+  cursor: inherit;
+  display: block;
+}
+input[readonly] {
+  background-color: white !important;
+  cursor: text !important;
+}
+
+.blink {
+    animation-duration: 1s;
+    animation-name: blink;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+}
+@keyframes blink {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
