@@ -8,9 +8,9 @@
 #==============================================================================
 
 # << 1. Move image files >>
-srcdir="/var/www/html/SurveyProjectManager/SurveyProjectManager/source/preprocessing"
-indir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/DayToDay/Photo"
-outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/Image/Consolidation/Materials"
+srcdir="/var/www/html/SurveyProjectManager/SurveyProjectManager/source/preprocessing/"
+indir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/DayToDay/Photo/"
+outdir="/home/yufujimoto/Documents/Projects/Danjiri/2016/Project/Image/Consolidation/Materials/"
 
 # Input directory structure is below:
 # ==============================================
