@@ -112,28 +112,31 @@ def getQr(path):
       dst = 0
       crd = []
       
-      qr.xArray=symbol.location[0][0]
-      qr.xArray=symbol.location[1][0]
-      qr.xArray=symbol.location[2][0]
-      qr.xArray=symbol.location[3][0]
-      
-      qr.yArray=symbol.location[0][1]
-      qr.yArray=symbol.location[1][1]
-      qr.yArray=symbol.location[2][1]
-      qr.yArray=symbol.location[3][1]
-      
-      qr.contents = symbol.data.strip()
-      qr.rotation = (math.atan2(qr.yArray[0]-qr.yArray[3], qr.xArray[0]-qr.xArray[3]))*(180/math.pi)
-      qr.width = math.sqrt(math.pow(qr.xArray[3]-qr.xArray[0],2)+math.pow(qr.yArray[3]-qr.yArray[0],2))
-      qr.height = math.sqrt(math.pow(qr.xArray[0]-qr.xArray[1],2)+math.pow(qr.yArray[0]-qr.yArray[1],2))
-      
-      qrcodes.append(qr)
+      try:
+        qr.xArray=symbol.location[0][0]
+        qr.xArray=symbol.location[1][0]
+        qr.xArray=symbol.location[2][0]
+        qr.xArray=symbol.location[3][0]
+        
+        qr.yArray=symbol.location[0][1]
+        qr.yArray=symbol.location[1][1]
+        qr.yArray=symbol.location[2][1]
+        qr.yArray=symbol.location[3][1]
+        
+        qr.contents = symbol.data.strip()
+        qr.rotation = (math.atan2(qr.yArray[0]-qr.yArray[3], qr.xArray[0]-qr.xArray[3]))*(180/math.pi)
+        qr.width = math.sqrt(math.pow(qr.xArray[3]-qr.xArray[0],2)+math.pow(qr.yArray[3]-qr.yArray[0],2))
+        qr.height = math.sqrt(math.pow(qr.xArray[0]-qr.xArray[1],2)+math.pow(qr.yArray[0]-qr.yArray[1],2))
+        
+        qrcodes.append(qr)
+      except:
+        pass
     
     # clean up
-    # pil.show()
     del(image)
     return qrcodes
   except ValueError:
+    print("Error")
     return None
 
 def centroid(x, y):
