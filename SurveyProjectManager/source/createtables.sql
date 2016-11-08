@@ -12,12 +12,20 @@ CREATE TABLE project (
  descriptions TEXT,
  created TIMESTAMP WITH TIME ZONE,
  created_by VARCHAR(255),
- faceimage BYTEA,
- faceimage_thumbnail BYTEA
+ faceimage BYTEA
 );
-COMMENT ON TABLE public.project IS 'This table defines generic information about the survey project.';
-COMMENT ON COLUMN public.project.id IS 'This attribute defines identifer of the project, which is used in DBMS.';
-COMMENT ON COLUMN public.project.uuid IS 'This attribute defines global unique id of the project.';
+COMMENT ON TABLE public.project IS
+    'This table defines generic information about the survey project.'
+;
+COMMENT ON COLUMN public.project.id IS
+    'This attribute defines identifer of the project, which is used in DBMS.
+    This identifier is mainly used in sorting entries.'
+;
+COMMENT ON COLUMN public.project.uuid IS
+    'This attribute defines global unique id of the project.
+    This unique id is used for identifying each project globaly, and it enables
+    to merge different projects.'
+;
 COMMENT ON COLUMN public.project.name IS 'This attribute defines the name of the project.';
 COMMENT ON COLUMN public.project.title IS 'This attribute defines the title of the project.';
 COMMENT ON COLUMN public.project.beginning IS 'This attribute defines the date of the project beginning.';
@@ -105,7 +113,6 @@ CREATE TABLE Consolidation (
  prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid),
  name VARCHAR(255),
  faceimage BYTEA,
- faceimage_thumbnail BYTEA,
  geographic_name VARCHAR(255),
  geographic_extent geometry(Polygon,4612),
  represented_point geometry(Point,4612),
