@@ -7,17 +7,10 @@
       exit;
     }
 	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
-	
 	require "lib/guid.php";
     require "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
-	
-	// Open the connection to DB
-	$err = $_GET['err'];
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -68,7 +61,7 @@
 					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>メンバー管理</h2></td></tr>
 					<!-- Operating menues -->
 					<tr><td colspan=7 style="text-align: left">
-						<button class="btn btn-sm btn-success" type="submit" value="add_member" onclick="addNewMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規ユーザーの追加</button>
+						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規ユーザーの追加</button>
 						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importMembersByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> ユーザーのインポート</button>
 						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportMembersByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> ユーザーのエクスポート</button>
 						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択したユーザーの削除</button>
@@ -82,44 +75,47 @@
 				
 				// Get a list of registered project.
 				// Create a SQL query string.
-				$sql_select_member = "SELECT * FROM member ORDER by id";
+				$sql_select_consolidation = "SELECT * FROM member ORDER by id";
 				
 				// Excute the query and get the result of query.
-				$result_select_member = pg_query($dbconn, $sql_select_member);
-				if (!$result_select_member) {
+				$result_select_consolidation = pg_query($dbconn, $sql_select_consolidation);
+				if (!$result_select_consolidation) {
 					// Print the error messages and exit routine if error occors.
 					echo "An error occurred in DB query.\n";
 					exit;
 				}
 				
 				// Fetch rows of projects. 
-				$rows_member = pg_fetch_all($result_select_member);
-				$row_count = 0 + intval(pg_num_rows($result_select_member));
+				$rows_consolidation = pg_fetch_all($result_select_consolidation);
+				$row_count = 0 + intval(pg_num_rows($result_select_consolidation));
 			?>
 			<!-- Members list -->
 			<div class="row"><table id="members" class='table table-striped'>
 				<thead style="text-align: center">
-					<tr><td></td><td>Avatar</td><td style="width: 200px">氏名</td><td>ユーザー名</td><td>ユーザー種別</td></tr>
+					<tr><td></td><td>Avatar</td><td style="width: 200px">名称</td><td>場所</td><td>開始時期</td><td>終了時期</td></tr>
 				</thead>
 				<?php
 					echo "<form id='selection'>\n";
-					foreach ($rows_member as $row){
-						$mem_uuid = $row['uuid'];
-						$mem_ava = $row['avatar'];
-						$mem_snm = $row['surname'];
-						$mem_fnm = $row['firstname'];
-						$mem_unm = $row['username'];
-						$mem_utp = $row['usertype'];
+					foreach ($rows_consolidation as $row){
+						$con_uuid = $row['uuid'];
+						$con_nam = $row['name'];
+						$con_fim = $row['faceimage'];
+						$con_gnm = $row['geographic_name'];
+						$con_beg = $row['estimated_period_beginning'];
+						$con_end = $row['estimated_period_ending'];
+						$con_dsc = $row['descriptions'];
 						
-						echo "\t\t\t\t\t<tr style='text-align: center;'><td style='vertical-align: middle;'><input type='radio' name='member' value='" .$mem_uuid. "' /></td>";
-						if($mem_ava != ""){
-							echo "<td style='vertical-align: middle;'><a href='project_members_view.php?mem_uuid=" .$mem_uuid. "'><img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$mem_uuid."' alt='img'/></a></td>";
+						echo "\t\t\t\t\t<tr style='text-align: center;'><td style='vertical-align: middle;'><input type='radio' name='member' value='" .$con_uuid. "' /></td>";
+						if($con_ava != ""){
+							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?con_uuid=" .$con_uuid. "'><img height=64 width=64 src='avatar_consolidation_list.php?con_uuid=" .$con_uuid."' alt='img'/></a></td>";
 						} else {
-							echo "<td style='vertical-align: middle;'><a href='project_members_view.php?mem_uuid=" .$mem_uuid. "'><img height=64 width=64  src='images/avatar.jpg' alt='img'/></a></td>";
+							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?con_uuid=" .$con_uuid. "'><img height=64 width=64  src='images/noimage.jpg' alt='img'/></a></td>";
 						}
-						echo "<td style='vertical-align: middle;'>". $mem_snm. " " .$mem_fnm. "</td>";
-						echo "<td style='vertical-align: middle;'>". $mem_unm. "</td>";
-						echo "<td style='vertical-align: middle;'>". $mem_utp. "</td></tr>\n";
+						echo "<td style='vertical-align: middle;'>". $con_nam. "</td>";
+						echo "<td style='vertical-align: middle;'>". $con_gnm. "</td>";
+						echo "<td style='vertical-align: middle;'>". $con_beg. "</td>";
+						echo "<td style='vertical-align: middle;'>". $con_end. "</td>";
+						echo "<td style='vertical-align: middle;'>". $con_dsc. "</td></tr>\n";
 					}
 					echo "\t\t\t\t</form>\n";
 					
@@ -132,18 +128,18 @@
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
 			function addNewMember() {
-				window.location.href = "add_member.php";
+				window.location.href = "add_consolidation.php";
 				return false;
 			}
 			
 			function importMembersByCsv() {
-				window.location.href = "project_members_add_csv.php";
+				window.location.href = "project_consolidations_add_csv.php";
 				
 				return false;
 			}
 			
 			function ExportMembersByCsv() {
-				window.location.href = "project_members_export_csv.php";
+				window.location.href = "project_consolidations_export_csv.php";
 				return false;
 			}
 			
@@ -161,13 +157,13 @@
 							
 							if (checked) {
 								// Get a project id of the selected item.
-								mem_uuid = selection[i].value;
+								con_uuid = selection[i].value;
 								
 								// Get the selected row and delete the row. 
 								table.deleteRow(i+1);
 								
 								// Send the member id to the PHP script to drop selected project from DB.
-								window.location.href = "delete_member.php?uuid=" + mem_uuid;
+								window.location.href = "delete_consolidation.php?uuid=" + con_uuid;
 								
 								// only one radio can be logically checked, don't check the rest
 								break;
@@ -186,10 +182,10 @@
 						
 						if (checked) {
 							// Get a project id of the selected item.
-							mem_uuid = selection[i].value;
+							con_uuid = selection[i].value;
 							
 							// Send the project id to the PHP script to drop selected project from DB.
-							return mem_uuid;
+							return con_uuid;
 						}
 					}
 				} catch(e){ alert(e); }
