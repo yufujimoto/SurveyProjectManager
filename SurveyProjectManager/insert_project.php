@@ -11,13 +11,37 @@
     require "lib/config.php";
     
     // Connect to the Database.
-    $dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
     
     if (!$_POST['name']) {
         $err = "プロジェクト名が空白です。";
         header("Location: add_project.php?err=".$err);
         exit ;
     }
+    
+    // Get avatar.
+    $prj_faceimage = $_POST['prj_fimg'];
+	if ($prj_faceimage != "") {
+		if (file_exists("uploads/".$prj_faceimage)) {
+			$filename = "uploads/thumbnail_".$prj_faceimage;
+			$filestream = fopen($filename,'r');
+			$data = fread($filestream,filesize($filename));
+			$escaped= pg_escape_bytea($data);
+            
+            
+			
+		} else {
+            $filename = "images/noimage.jpg";
+            $filestream = fopen($filename,'r');
+            $data = fread($filestream,filesize($filename));
+            $escaped= pg_escape_bytea($data);
+        }
+	} else {
+		$filename = "images/noimage.jpg";
+		$filestream = fopen($filename,'r');
+		$data = fread($filestream,filesize($filename));
+		$escaped= pg_escape_bytea($data); 
+	}
     
     date_default_timezone_set('Asia/Tokyo');
     
@@ -32,6 +56,7 @@
     $desc = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_POST['desc']))."'");
     $now = str_replace("''", "NULL", "'".date('Y-m-d G:i:s', time())."'");
     $user = str_replace("''", "NULL", "'".$_SESSION['USERNAME']."'");
+    $faceimage = $escaped;
     
     try{
         // Insert new record into the project table.
@@ -46,7 +71,8 @@
                             cause,
                             descriptions,
                             created,
-                            created_by
+                            created_by,
+                            faceimage
                         ) VALUES (
                             $uuid,
                             $name,
@@ -58,7 +84,8 @@
                             $cause,
                             $desc,
                             $now,
-                            $user
+                            $user,
+                            '{$faceimage}'
                         )";
         $sql_result = pg_query($dbconn, $sql_inssert);
         

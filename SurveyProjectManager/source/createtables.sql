@@ -15,16 +15,16 @@ CREATE TABLE project (
  faceimage BYTEA
 );
 COMMENT ON TABLE public.project IS
-    'This table defines generic information about the survey project.'
+'This table defines generic information about the survey project.'
 ;
 COMMENT ON COLUMN public.project.id IS
-    'This attribute defines identifer of the project, which is used in DBMS.
-    This identifier is mainly used in sorting entries.'
+'This attribute defines identifer of the project, which is used in DBMS.
+This identifier is mainly used in sorting entries.'
 ;
 COMMENT ON COLUMN public.project.uuid IS
-    'This attribute defines global unique id of the project.
-    This unique id is used for identifying each project globaly, and it enables
-    to merge different projects.'
+'This attribute defines global unique id of the project.
+This unique id is used for identifying each project globaly, and it enables
+to merge different projects.'
 ;
 COMMENT ON COLUMN public.project.name IS 'This attribute defines the name of the project.';
 COMMENT ON COLUMN public.project.title IS 'This attribute defines the title of the project.';

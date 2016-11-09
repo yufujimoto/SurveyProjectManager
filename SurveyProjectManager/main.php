@@ -13,7 +13,7 @@
     
     // Connect to DB.
     $username = $_SESSION["USERNAME"];
-    $dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
     $query = "SELECT * FROM member WHERE username = '" . $username . "'";
     $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
     while ($row = pg_fetch_assoc($result)) {
@@ -72,7 +72,7 @@
 			<div id="main" class="row">
 				<?php
 					// Connect to the DB.
-					$dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+					$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
 					
 					// Get a list of registered project.
 					// Create a SQL query string.

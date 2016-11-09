@@ -1,15 +1,20 @@
 <!doctype html>
-<?php
-    // Load the library for password check.
-    require "lib/password.php";
-    require "lib/config.php";
-    
+<?php  
     // Start the new session.
     session_start();
     
     // Initialize the error Message.
     $errMsg = "";
+	
+	if (!file_exists("lib/config.php")) {
+		$errMsg = "データベースの設定ファイルがありません。";
+		header("Location: index.php?msg=".$errMsg);
+	}
     
+    // Load the library for password check.
+    require "lib/password.php";
+    require "lib/config.php";
+	
     if (isset($_POST["login"])) {
         // Check the user name.
         if (empty($_POST["username"])) {
@@ -22,30 +27,44 @@
         if (!empty($_POST["username"]) && !empty($_POST["password"])) {
 			$username = $_POST["username"];
             
-			$dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+			$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS);
 			
-            // Run SQL query.
-            $query = "SELECT * FROM member WHERE username = '" . $username . "'";
-            $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
-            while ($row = pg_fetch_assoc($result)) {
-                $db_hashed_pwd = $row['password'];
-				$username = $row['username'];
-				$usertype = $row['usertype'];
-            }
-            
-            // Close the connection.
-            pg_close();
-            
-            // Check the password.
-            if (password_verify($_POST["password"], $db_hashed_pwd)) {
-				session_regenerate_id(true);
-				$_SESSION["USERNAME"] = $username;
-				$_SESSION["USERTYPE"] = $usertype;
-				header("Location: main.php");
-				exit;
-            } else {
-				$errMsg = "メールアドレスあるいはパスワードが間違っています";
-            }
+			if (!empty($dbconn)) {				
+				// Check the number of user
+				$query_all = "SELECT * FROM member";
+				$rows_project = pg_fetch_all($query_all);
+				$row_count = 0 + intval(pg_num_rows($result_select_projects));
+				
+				if ($row_count == 0){
+					header("Location: add_member.php");
+				}
+				
+				// Run SQL query.
+				$query = "SELECT * FROM member WHERE username = '" . $username . "'";
+				$result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+				while ($row = pg_fetch_assoc($result)) {
+					$db_hashed_pwd = $row['password'];
+					$username = $row['username'];
+					$usertype = $row['usertype'];
+				}
+				
+				// Close the connection.
+				pg_close();
+				
+				// Check the password.
+				if (password_verify($_POST["password"], $db_hashed_pwd)) {
+					session_regenerate_id(true);
+					$_SESSION["USERNAME"] = $username;
+					$_SESSION["USERTYPE"] = $usertype;
+					header("Location: main.php");
+					exit;
+				} else {
+					$errMsg = "メールアドレスあるいはパスワードが間違っています";
+				}
+			} else {
+				$errMsg = "データベースの設定ができていません。";
+				header("Location: index.php?msg=".$errMsg);
+			}
         }
         
     }

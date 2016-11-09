@@ -12,7 +12,7 @@
 		header("Location: main.php");
 	}
 	
-	$dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
 	if (!$dbconn) {
 		echo "An error occurred in DB connection.\n";
 		exit;

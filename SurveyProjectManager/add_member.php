@@ -25,6 +25,8 @@
 		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
+		<script type="text/javascript" src="lib/refreshImage.js"></script>
+		
 		<!-- Import external scripts for Bootstrap CSS -->
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
 		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
@@ -53,6 +55,11 @@
 					}
 				});
 			});
+		</script>
+		<script>
+			function doOnLoad(){
+				refreshAvatar(id="<?php echo $uuid;?>",h=128,w=128,target="member");
+			}
 		</script>
 	</head>
 	<body onload="doOnLoad();">
@@ -95,13 +102,20 @@
 					<!-- iFrame for showing Avatar -->
 					<tr>
 						<td style="width: 150px;">
-							<iframe name="iframe_avatar" style="width: 145px; height: 135px; border: solid; border-color: #999999;" src="avatar_member.php"></iframe>
+							<iframe name="iframe_avatar" style="width: 145px; height: 135px; border: solid; border-color: #999999;" src="avatar_uploaded.php"></iframe>
 							<form id="form_avatar" method="post" enctype="multipart/form-data">
 						<td style="vertical-align: bottom">
-							<div class="input-group"><span class="input-group-btn"><span class="btn btn-primary btn-file">Browse&hellip;<input id="input_avatar" type="file" name="avatar" size="50" accept=".jpg,.JPG,.jpeg,.JPEG" /></span></span><input id="name_avatar" type="text" class="form-control" readonly value=""/></div>
+							<div class="input-group">
+								<span class="input-group-btn">
+									<span class="btn btn-primary btn-file">Browse&hellip;
+										<input id="input_avatar" type="file" name="avatar" size="50" accept=".jpg,.JPG,.jpeg,.JPEG" />
+									</span>
+								</span>
+								<input id="name_avatar" type="text" class="form-control" readonly value=""/>
+							</div>
 						</td>
 						<td style="width: 100px; vertical-align: bottom">
-							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick="refreshAvatar();"/>
+							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick='refreshAvatar(id="<?php echo $uuid;?>",h=128,w=128,target="member");'/>
 						</td>
 					</form></tr>
 				</table>
@@ -234,18 +248,5 @@
 				<input type="hidden" name="mem_avt" value="<?php echo $uuid;?>.jpg">
 			</form>
 		</div></div>
-		
-		<!-- Java scripts. -->
-		<script>
-			function refreshAvatar(){		
-				var form = document.getElementById('form_avatar');
-				var filename = document.getElementById('name_avatar');
-				var input = document.getElementById('input_avatar');
-				var param = "<?php echo $uuid;?>";
-				
-				form.action = "avatar_member.php?path="+param+"&height=128&width=128";
-				form.target = "iframe_avatar";
-			}
-		</script>
 	</body>
 </html>

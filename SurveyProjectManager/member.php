@@ -18,7 +18,7 @@
 	
 	// Open the connection to DB
 	$err = $_GET['err'];
-	$dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
 	
 	// Close DB Connection.
 	pg_close($dbconn);
@@ -82,7 +82,7 @@
 			
 			<?php
 				// Connect to the DB.
-				$dbconn = pg_connect("host=".DBHOST." port=5432 dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+				$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
 				
 				// Get a list of registered project.
 				// Create a SQL query string.
