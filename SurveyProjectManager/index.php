@@ -18,6 +18,9 @@
             $errMsg = "ユーザー名が未入力です。";
         } else if (empty($_POST["dbpass"])) {
             $errMsg = "パスワードが未入力です。";
+        }
+		} else if (empty($_POST["srid"])) {
+            $errMsg = "SRIDが未入力です。";
         } 
         
         // Authenticate 
@@ -29,6 +32,7 @@
                 $dbhost = $_POST["dbhost"];
                 $dbport = $_POST["dbport"];
                 $dbname = $_POST["dbname"];
+				$srid = $_POST["srid"];
                 
                 $dbconn = pg_connect("host=".$dbhost." port=".$dbport." dbname=".$dbname." user=".$dbuser." password=".$dbpass);
                 
@@ -42,6 +46,7 @@
                     fwrite($configfile, "\t".'define("DBHOST", "'.$dbhost.'");'."\n");
                     fwrite($configfile, "\t".'define("DBNAME", "'.$dbname.'");'."\n");
                     fwrite($configfile, "\t".'define("DBPORT", "'.$dbport.'");'."\n");
+					fwrite($configfile, "\t".'define("SRID", "'.$srid.'");'."\n");
                     fwrite($configfile, '?>');
                     
                     fclose($configfile);
@@ -111,6 +116,10 @@
                         <tr>
                             <td style="width: 150px">パスワード</td>
                             <td><input type="password" name="dbpass" size="50" maxlength="150" class='form-control' value=""/><br /></td>
+                        </tr>
+						<tr>
+                            <td style="width: 150px">SRID（空間参照）</td>
+                            <td><input type="text" name="srid" size="50" maxlength="150" class='form-control' value="4612"/><br /></td>
                         </tr>
                         <tr>
                             <td colspan="2" style="text-align: right"><input type="submit" id="submit" name="submit" value="設定" class='btn btn-default'></td>
