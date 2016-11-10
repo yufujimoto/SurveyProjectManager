@@ -11,6 +11,8 @@
     require "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
+	
+	$prj_id= $_REQUEST['uuid'];
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -58,13 +60,13 @@
 			<div class="row"><table class='table'>
 				<thead style="text-align: center">
 					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>メンバー管理</h2></td></tr>
+					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>統合体の管理</h2></td></tr>
 					<!-- Operating menues -->
 					<tr><td colspan=7 style="text-align: left">
-						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規ユーザーの追加</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importMembersByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> ユーザーのインポート</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportMembersByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> ユーザーのエクスポート</button>
-						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択したユーザーの削除</button>
+						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規統合体の追加</button>
+						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 統合体のインポート</button>
+						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 統合体のエクスポート</button>
+						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した統合体の削除</button>
 					</td></tr>
 				</thead>
 			</table></div>
@@ -75,7 +77,7 @@
 				
 				// Get a list of registered project.
 				// Create a SQL query string.
-				$sql_select_consolidation = "SELECT * FROM member ORDER by id";
+				$sql_select_consolidation = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
 				
 				// Excute the query and get the result of query.
 				$result_select_consolidation = pg_query($dbconn, $sql_select_consolidation);
@@ -88,11 +90,15 @@
 				// Fetch rows of projects. 
 				$rows_consolidation = pg_fetch_all($result_select_consolidation);
 				$row_count = 0 + intval(pg_num_rows($result_select_consolidation));
+				
+				// Create section Label and show the total number of the registered project
+				echo "<h3>" . $row_count ."件の統合体が登録されています。</h3>\n";
 			?>
 			<!-- Members list -->
-			<div class="row"><table id="members" class='table table-striped'>
+			<div class="row">
+				<table id="consolidation" class='table table-striped'>
 				<thead style="text-align: center">
-					<tr><td></td><td>Avatar</td><td style="width: 200px">名称</td><td>場所</td><td>開始時期</td><td>終了時期</td></tr>
+					<tr><td></td><td>Avatar</td><td style="width: 200px">名称</td><td>場所</td><td>開始時期</td><td>終了時期</td><td>操作パネル</td></tr>
 				</thead>
 				<?php
 					echo "<form id='selection'>\n";
@@ -115,7 +121,8 @@
 						echo "<td style='vertical-align: middle;'>". $con_gnm. "</td>";
 						echo "<td style='vertical-align: middle;'>". $con_beg. "</td>";
 						echo "<td style='vertical-align: middle;'>". $con_end. "</td>";
-						echo "<td style='vertical-align: middle;'>". $con_dsc. "</td></tr>\n";
+						echo "<td style='vertical-align: middle;'>". $con_dsc. "</td>";
+						echo "<td style='vertical-align: middle;'>".'<button class="btn btn-md btn-success" type="submit" id="material_list">資料の編集</button>'."</td></tr>\n";
 					}
 					echo "\t\t\t\t</form>\n";
 					
@@ -127,24 +134,24 @@
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
-			function addNewMember() {
-				window.location.href = "add_consolidation.php";
+			function addNewConsolidation() {
+				window.location.href = "add_consolidation.php?uuid=<?php echo $prj_id; ?>";
 				return false;
 			}
 			
-			function importMembersByCsv() {
+			function importConsolidationByCsv() {
 				window.location.href = "project_consolidations_add_csv.php";
 				
 				return false;
 			}
 			
-			function ExportMembersByCsv() {
+			function ExportConsolidationByCsv() {
 				window.location.href = "project_consolidations_export_csv.php";
 				return false;
 			}
 			
-			function deleteASelectedMember() {
-				var table=document.getElementById("members");
+			function deleteASelectedConsolidation() {
+				var table=document.getElementById("consolidation");
 				var selection = document.getElementById('selection');
 				var rowCount=table.rows.length;
 				
@@ -173,7 +180,7 @@
 				}
 			}
 			
-			function handleSelectedMember() {
+			function handleSelectedConsolidation() {
 				var selection = document.getElementById('selection');
 				
 				try{
