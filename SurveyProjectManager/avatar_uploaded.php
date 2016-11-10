@@ -15,9 +15,9 @@
 	<?php
 		$desired_height = $_GET["height"];
 		$desired_width = $_GET["width"];
-		$trgt = $_GET['table'];
+		$trgt = str_replace("'", "", $_GET['target']);
 		$imgid = $_GET['img_id'];
-
+				
 		// Check the validity of the uploaded file.
 		if (is_uploaded_file($_FILES["avatar"]["tmp_name"])) {
 			// New filename for uploaded file.
@@ -29,11 +29,20 @@
 				chmod($uploadedfile, 0777);
 				// Create a image stream of the given file.
 				$source_image = imagecreatefromjpeg($uploadedfile);
-				$destination_image = "uploads/thumbnail_".$_GET["path"].".jpg";
+				$destination_image = "uploads/thumbnail_".$_GET["id"].".jpg";
 				
 				// Get the file size of the image.
 				$width = imagesx($source_image);
 				$height = imagesy($source_image);
+				
+				if (empty($desired_height)){
+					$desired_height = ($height * $desired_width) / $width;
+				} elseif (empty($desired_width)) {
+					$desired_width = ($width * $desired_height) / $height;
+				} elseif (empty($desired_width) and empty($desired_height)) {
+					$desired_height = $height;
+					$desired_width = $width;
+				}
 				
 				// Find the "desired height" of this thumbnail, relative to the desired width.
 				$virtual_image = imagecreatetruecolor($desired_width, $desired_height);
@@ -51,30 +60,35 @@
 				$avatar_msg = "Cannot Upload Avatar";
 			}
 		} else {
-			//echo $trgt;
-			
 			if ($trgt=="project") {
 				// Get avatar from the table
 				// Add an existing section.
 				if($imgid != ""){
-					echo "<img id='avatar' width=".$desired_width." height=".$desired_height."px style='margin:0px auto;display:block' ";
+					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
 					echo "src='avatar_project_face.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
 				} else {
-					echo "<img id='avatar' width=".$desired_width."px height=".$desired_height."px style='margin:0px auto;display:block' ";
+					echo "<img id='avatar' width=".$desired_width." height=".$desired_height."px style='margin:0px auto;display:block' ";
 					echo "src='images/noimage.jpg' alt='Uploaded image is invalid.'/>";
 				}
 			} elseif ($trgt=="member") {
 				// Initialize the default image file name.				
-				echo "<img id='avatar' width=".$desired_width." height=".$desired_height."px style='margin:0px auto;display:block' ";
+				echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
 				echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
+			} elseif ($trgt=="consolidation") {
+				// Initialize the default image file name.				
+				if($imgid != ""){
+					echo "<img id='avatar' height=".$desired_height." style='margin:0px auto;display:block' ";
+					echo "src='avatar_project_face.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
+				} else {
+					echo "<img id='avatar' height=400px width=600px style='margin:0px auto;display:block' ";
+					echo "src='images/noimage.jpg' alt='Uploaded image is invalid.'/>";
+				}
 			} else {
 				// Initialize the default image file name.
-				echo $trgt;
-				echo "<img id='avatar' width=".$desired_width." height=".$desired_height."px style='margin:0px auto;display:block' ";
+				echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
 				echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
 			}
 		}
-		$trgt="";
 	?>
 	</body>
 </html>

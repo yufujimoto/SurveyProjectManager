@@ -116,19 +116,19 @@
 						// Build HTML tag elements using aquired field values.
 						echo "\t\t\t\t\t\t<tr>\n";
 						echo "\t\t\t\t\t\t\t";
-						echo '<td style="text-align: left"><a style="cursor: pointer;" onclick=moveToProjectView("'.$prj_uuid.'");> '.$prj_name .'</td>';
-						echo "\n\t\t\t\t\t\t\t<td style='width: 100px;'>" . $prj_begin ."</td>\n";
-						echo "\t\t\t\t\t\t\t<td style='width: 100px;'>" . $prj_end ."</td>\n";
-						echo "\t\t\t\t\t\t\t<td style='width: 100px;'>第" . $prj_phase ."次調査</td>\n";
-						echo "\t\t\t\t\t\t\t<td'>" . $prj_date ."</td>\n";
-						echo "\t\t\t\t\t\t\t<td>";
-						echo '<button class="btn btn-md btn-success" type="submit" id="deleteOne">資料編集</button> ';
-						echo '<button class="btn btn-md btn-success" type="submit" id="deleteOne">報告書執筆</button>';
+						echo '<td style="text-align: left; vertical-align: middle;"> '.$prj_name .'</a></td>';
+						echo "\n\t\t\t\t\t\t<td style='width: 100px;vertical-align: middle;'>" . $prj_begin ."</td>\n";
+						echo "\t\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>" . $prj_end ."</td>\n";
+						echo "\t\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>第" . $prj_phase ."次調査</td>\n";
+						echo "\t\t\t\t\t\t\t<td style='width: 300px; vertical-align: middle;'>";
+						echo '<a class="btn btn-default" style="cursor: pointer;" onclick=moveToProjectView("'.$prj_uuid.'");>プロジェクトの編集</a>';
+						echo '<a class="btn btn-default" style="cursor: pointer;" onclick=moveToConsolidationView("'.$prj_uuid.'");>資料の編集</a>';
 						echo "</td>\n";
 						echo "\t\t\t\t\t\t</tr>\n";
 					}
 					echo "\t\t\t\t\t</form>\n";
 					echo "\t\t\t\t</table>\n";
+					
 					
 					pg_close($dbconn);
 				?>
@@ -136,6 +136,12 @@
 		</div>
 		<!-- Javascript -->
 		<script type="text/javascript">
+			// Moove to other page to show the summary of the project.
+			function moveToConsolidationView(uuid) {
+				//window.location.href = "consolidation.php?uuid=" + uuid;
+				window.location.href = "consolidation.php?uuid=" + uuid;
+			}
+			
 			// Moove to other page to show the summary of the project.
 			function moveToProjectView(uuid) {
 				window.location.href = "edit_project.php?uuid=" + uuid;

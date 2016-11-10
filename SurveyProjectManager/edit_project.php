@@ -137,7 +137,7 @@
 			<div class="row"><table class='table'>
 				<thead style="text-align: center">
 					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td><h2>プロジェクトの登録</h2></td></tr>
+					<tr style="background-color:#343399; color:#ffffff;"><td><h2>プロジェクト情報の編集</h2></td></tr>
 				</thead>
 			</table></div>
 			
@@ -146,7 +146,7 @@
 				<table class='table table' style="border: hidden">
 					<!-- iFrame for showing Avatar -->
 					<tr style="text-align: center"><td colspan="2">
-							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?width=600&height=400&table=project&img_id=<?php echo $uuid; ?>"></iframe>
+							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?width=600&height=400&target=project&img_id=<?php echo $uuid; ?>"></iframe>
 					</td></tr>
 					<tr><form id="form_avatar" method="post" enctype="multipart/form-data">
 						<td style="width: auto">

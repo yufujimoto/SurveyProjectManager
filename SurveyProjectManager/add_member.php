@@ -7,7 +7,7 @@
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
-	$uuid = uniqid('img_');
+	$uuid = uniqid($_SESSION["USERNAME"]."_");
 	$err = $_REQUEST['err'];
 ?>
 <!DOCTYPE html>

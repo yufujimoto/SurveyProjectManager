@@ -1,12 +1,27 @@
 <?php
 session_start();
  
-if (isset($_SESSION["USERID"])) {
+if (isset($_SESSION["USERNAME"])) {
   $errorMessage = "ログアウトしました。";
+	
+	// Delete temporal files updated by this user.
+	$dir =  getcwd()."/uploads";
+	$files = scandir($dir);
+			foreach($files as $file){
+				$findme   = $_SESSION["USERNAME"];
+				$pos = strpos($file, $findme);
+				
+				if ($pos === false) {
+						echo "";
+				} else {
+						unlink($dir."/".$file);
+				}
+			}
 }
 else {
   $errorMessage = "セッションがタイムアウトしました。";
 }
+
 // セッション変数のクリア
 $_SESSION = array();
 @session_destroy();

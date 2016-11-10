@@ -19,7 +19,7 @@
 	// Open the connection to DB
 	$err = $_GET['err'];
 	$prj_id = $_GET['uuid'];
-	$uuid = uniqid('php_');
+	$uuid = uniqid($_SESSION["USERNAME"]."_");
 	$img = "uploads/".$uuid.".jpg";
 	$tmg = "uploads/thumbnail_".$uuid.".jpg";
 ?>
@@ -79,7 +79,7 @@
 		
 		<script>
 			function doOnLoad(){
-				refreshAvatar(id="<?php echo $uuid;?>",h=600,w=800,target="project");
+				refreshAvatar(id="<?php echo $uuid;?>",h=400,w="",target="consolidation");
 			}
 		</script>
 	</head>
@@ -120,7 +120,7 @@
 				<table class='table table' style="border: hidden">
 					<!-- iFrame for showing Avatar -->
 					<tr style="text-align: center"><td colspan="2">
-							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?target='project'"></iframe>
+							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?target=consolidation&hight=400&width=600"></iframe>
 					</td></tr>
 					<tr><form id="form_avatar" method="post" enctype="multipart/form-data">
 						<td style="width: auto">
@@ -133,7 +133,7 @@
 								<input id="name_avatar" type="text" class="form-control" readonly value=""/></div>
 						</td>
 						<td style="width: 100px">
-							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w=600,target="project");'/>
+							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w="",target="consolidation");'/>
 						</td>
 					</form></tr>
 				</table>

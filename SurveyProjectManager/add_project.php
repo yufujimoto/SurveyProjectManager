@@ -18,7 +18,7 @@
 	
 	// Open the connection to DB
 	$err = $_GET['err'];
-	$uuid = uniqid('php_');
+	$uuid = uniqid($_SESSION["USERNAME"]."_");
 	$img = "uploads/".$uuid.".jpg";
 	$tmg = "uploads/thumbnail_".$uuid.".jpg";
 ?>
@@ -116,7 +116,7 @@
 				<table class='table table' style="border: hidden">
 					<!-- iFrame for showing Avatar -->
 					<tr style="text-align: center"><td colspan="2">
-							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php"></iframe>
+							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?target=project&hight=400&width=600"></iframe>
 					</td></tr>
 					<tr><form id="form_avatar" method="post" enctype="multipart/form-data">
 						<td style="width: auto">
