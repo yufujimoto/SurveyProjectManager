@@ -15,17 +15,14 @@ CREATE TABLE project (
  faceimage BYTEA
 );
 COMMENT ON TABLE public.project IS
-'This table defines generic information about the survey project.'
-;
+'This table defines generic information about the survey project.';
 COMMENT ON COLUMN public.project.id IS
 'This attribute defines identifer of the project, which is used in DBMS.
-This identifier is mainly used in sorting entries.'
-;
+This identifier is mainly used in sorting entries.';
 COMMENT ON COLUMN public.project.uuid IS
 'This attribute defines global unique id of the project.
 This unique id is used for identifying each project globaly, and it enables
-to merge different projects.'
-;
+to merge different projects.';
 COMMENT ON COLUMN public.project.name IS 'This attribute defines the name of the project.';
 COMMENT ON COLUMN public.project.title IS 'This attribute defines the title of the project.';
 COMMENT ON COLUMN public.project.beginning IS 'This attribute defines the date of the project beginning.';
@@ -33,7 +30,6 @@ COMMENT ON COLUMN public.project.ending IS 'This attribute defines the date of t
 COMMENT ON COLUMN public.project.ending IS 'This attribute defines the phase of the project.';
 COMMENT ON COLUMN public.project.introduction IS 'This attribute can be used for introduction of the survey report.';
 COMMENT ON COLUMN public.project.descriptions IS 'This attribute can be used for describing additional information about the project.';
-
 
 /* Organization */
 CREATE TABLE organization (
@@ -64,7 +60,7 @@ COMMENT ON COLUMN public.organization.phone IS 'This attribute defines the phone
 CREATE TABLE member (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- org_id VARCHAR(36) NOT NULL REFERENCES organization(uuid),
+ org_id VARCHAR(36) NOT NULL REFERENCES organization(uuid) ON UPDATE CASCADE ON DELETE SET NULL,
  avatar BYTEA,
  surname VARCHAR(255),
  firstname VARCHAR(255),
@@ -98,8 +94,8 @@ COMMENT ON COLUMN public.member.usertype IS 'This attribute defines the member t
 /* Member role in the project */
 CREATE TABLE role (
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid),
- mem_id VARCHAR(36) NOT NULL REFERENCES member(uuid),
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ mem_id VARCHAR(36) NOT NULL REFERENCES member(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  beginning DATE,
  ending DATE,
  rolename VARCHAR(255),
@@ -107,33 +103,36 @@ CREATE TABLE role (
 );
 
 
-CREATE TABLE Consolidation (
+CREATE TABLE consolidation (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid),
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  name VARCHAR(255),
  faceimage BYTEA,
  geographic_name VARCHAR(255),
  geographic_extent geometry(Polygon,4612),
  represented_point geometry(Point,4612),
  estimated_area geometry(Polygon,4612),
- estimated_period_beginning DATE,
- estimated_period_ending DATE,
+ estimated_period_beginning VARCHAR(255),
+ estimated_period_ending VARCHAR(255),
  descriptions TEXT
 );
 
-
-
-
+CREATE TABLE consolidation_of_consolidation (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ parent VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ child VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ descriptions TEXT
+);
 
 CREATE TABLE material (
- materialid INT NOT NULL,
- consolidationid INT NOT NULL,
- projectid INT NOT NULL,
- relating_to INT,
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ con_id VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  name VARCHAR(255),
- beginning TIMESTAMP WITH TIME ZONE,
- ending TIMESTAMP WITH TIME ZONE,
+ estimated_period_beginning VARCHAR(255),
+ estimated_period_ending VARCHAR(255),
  represented_point geometry(Point,4612),
  path geometry(MultiLineStringM,4612),
  area geometry(Polygon,4612),
@@ -141,19 +140,18 @@ CREATE TABLE material (
  descriptions TEXT
 );
 
-ALTER TABLE material ADD CONSTRAINT PK_material PRIMARY KEY (materialid,consolidationid,projectid);
-
-
 CREATE TABLE material_to_material (
- relating_to INT NOT NULL,
- consolidationid INT,
- related_from INT,
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ relating_from VARCHAR(36) NOT NULL REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ relating_to VARCHAR(36) NOT NULL REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  relation_type VARCHAR(255),
- descriptions VARCHAR(255),
- projectid INT
+ descriptions VARCHAR(255)
 );
 
-ALTER TABLE material_to_material ADD CONSTRAINT PK_material_to_material PRIMARY KEY (relating_to);
+
+
+
 
 CREATE TABLE report (
  reportid INT NOT NULL,
@@ -274,55 +272,5 @@ CREATE TABLE file (
  filename VARCHAR(255),
  mimetype VARCHAR(255)
 );
-
-ALTER TABLE file ADD CONSTRAINT PK_file PRIMARY KEY (fileid,projectid);
-
-
-ALTER TABLE material ADD CONSTRAINT FK_material_0 FOREIGN KEY (consolidationid,projectid) REFERENCES Consolidation (consolidationid,projectid);
-ALTER TABLE material ADD CONSTRAINT FK_material_1 FOREIGN KEY (relating_to) REFERENCES material_to_material (relating_to);
-
-
-ALTER TABLE material_to_material ADD CONSTRAINT FK_material_to_material_0 FOREIGN KEY (related_from,consolidationid,projectid) REFERENCES material (materialid,consolidationid,projectid);
-
-
-ALTER TABLE report ADD CONSTRAINT FK_report_0 FOREIGN KEY (projectid) REFERENCES project (projectid);
-
-
-ALTER TABLE surface ADD CONSTRAINT FK_surface_0 FOREIGN KEY (materialid,consolidationid,projectid) REFERENCES material (materialid,consolidationid,projectid);
-
-
-ALTER TABLE Consolidation ADD CONSTRAINT FK_Consolidation_0 FOREIGN KEY (projectid) REFERENCES project (projectid);
-
-
-ALTER TABLE equipments ADD CONSTRAINT FK_equipments_0 FOREIGN KEY (projectid) REFERENCES project (projectid);
-ALTER TABLE equipments ADD CONSTRAINT FK_equipments_1 FOREIGN KEY (related_equipments,projectid) REFERENCES equipments (equipmentsid,projectid);
-
-
-ALTER TABLE keywords ADD CONSTRAINT FK_keywords_0 FOREIGN KEY (materialid,consolidationid,projectid) REFERENCES material (materialid,consolidationid,projectid);
-
-
-ALTER TABLE Subject ADD CONSTRAINT FK_Subject_0 FOREIGN KEY (surfaceid,materialid,consolidationid,projectid) REFERENCES surface (surfaceid,materialid,consolidationid,projectid);
-
-
-ALTER TABLE device_specification ADD CONSTRAINT FK_device_specification_0 FOREIGN KEY (equipmentsid,projectid) REFERENCES equipments (equipmentsid,projectid);
-
-
-ALTER TABLE member ADD CONSTRAINT FK_member_0 FOREIGN KEY (organizationid) REFERENCES organization (organizationid);
-
-
-ALTER TABLE section ADD CONSTRAINT FK_section_0 FOREIGN KEY (reportid,projectid) REFERENCES report (reportid,projectid);
-ALTER TABLE section ADD CONSTRAINT FK_section_1 FOREIGN KEY (modified_by,organizationid) REFERENCES member (memberid,organizationid);
-
-
-ALTER TABLE surveydiary ADD CONSTRAINT FK_surveydiary_0 FOREIGN KEY (projectid) REFERENCES project (projectid);
-ALTER TABLE surveydiary ADD CONSTRAINT FK_surveydiary_1 FOREIGN KEY (memberid,organizationid) REFERENCES member (memberid,organizationid);
-
-
-ALTER TABLE file ADD CONSTRAINT FK_file_0 FOREIGN KEY (projectid) REFERENCES project (projectid);
-ALTER TABLE file ADD CONSTRAINT FK_file_1 FOREIGN KEY (materialid,consolidationid,projectid) REFERENCES material (materialid,consolidationid,projectid);
-ALTER TABLE file ADD CONSTRAINT FK_file_2 FOREIGN KEY (registered_by,organizationid) REFERENCES member (memberid,organizationid);
-ALTER TABLE file ADD CONSTRAINT FK_file_3 FOREIGN KEY (surfaceid,materialid,consolidationid,projectid) REFERENCES surface (surfaceid,materialid,consolidationid,projectid);
-ALTER TABLE file ADD CONSTRAINT FK_file_4 FOREIGN KEY (subjectid,surfaceid,materialid,consolidationid,projectid) REFERENCES Subject (subjectid,surfaceid,materialid,consolidationid,projectid);
-ALTER TABLE file ADD CONSTRAINT FK_file_5 FOREIGN KEY (consolidationid,projectid) REFERENCES Consolidation (consolidationid,projectid);
 
 

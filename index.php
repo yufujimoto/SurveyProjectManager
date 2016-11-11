@@ -31,7 +31,7 @@
                     $dir = getcwd();
                     $files = scandir($dir);
                         foreach($files as $file){
-                        if($file!="." and $file!=".." and $file!="SurveyProjectManager" and $file!="bootstrap" and $file!="index.php" and $file!="theme.css"){
+                        if($file!="." and $file!=".." and $file!="SurveyProjectManager" and $file!="bootstrap" and $file!="index.php" and $file!="theme.css" and $file!="config.php"){
                             echo "<h2><a href=".$file.">Move to '".$file."' Project</a></h2>";
                         }
                     }

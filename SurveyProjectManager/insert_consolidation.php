@@ -109,16 +109,16 @@
             $err = pg_last_error($dbconn);
             
             // Back to projects page.
-            header("Location: consolidation.php?err=".$err);
+            header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
         }
     } catch (Exception $err) {
         // Get the error message.
         $err->getMessage();
         
         // Back to projects page.
-        header("Location: consolidation.php?err=".$err);
+        header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
     }
     
     // Back to projects page without error messages.
-    header("Location: consolidation.php");
+    header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
 ?>

@@ -17,8 +17,8 @@
 		echo "An error occurred in DB connection.\n";
 		exit;
 	}
-	$prj_uuid = $_GET["uuid"];
-	$sql_sel_prj = "SELECT faceimage FROM project WHERE uuid='" .$prj_uuid."'" ;
+	$con_uuid = $_GET["uuid"];
+	$sql_sel_prj = "SELECT faceimage FROM consolidation WHERE uuid='" .$con_uuid."'" ;
 	$res_sel_prj = pg_query($sql_sel_prj);	
 	$ret_sel_prj = pg_fetch_result($res_sel_prj, "faceimage");
 	

@@ -153,8 +153,8 @@
 					<tr>
 						<td style='text-align: center; vertical-align: middle'>時　　期</td>
 						<td><div class="row">
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">開始:</span><input class="form-control" type="text" name="lat" id="bgn" ></div></div>
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">終了:</span><input class="form-control" type='text' name="lon" id="end" ></div></div>
+							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">開始:</span><input class="form-control" type="text" name="bgn" id="bgn" ></div></div>
+							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">終了:</span><input class="form-control" type='text' name="end" id="end" ></div></div>
 						</div></td>
 					</tr>
 					<tr>
@@ -184,7 +184,7 @@
 					<button class="btn btn-md btn-success" type="submit" value="registeration"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 統合体の登録</button>
 				</td></tr></table>
 				<input type="hidden" name="con_fimg" value="<?php echo $uuid;?>.jpg">
-				<input type="hidden" name="prj_id" value="<?php echo $prj_id;?>.jpg">
+				<input type="hidden" name="prj_id" value="<?php echo $prj_id;?>">
 			</form>
 		</div>
 	</body>

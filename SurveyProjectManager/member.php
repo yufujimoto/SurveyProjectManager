@@ -16,7 +16,6 @@
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
-	// Open the connection to DB
 	$err = $_GET['err'];
 ?>
 <!DOCTYPE html>
@@ -60,22 +59,32 @@
 	    </div>
 		
 		<!-- Main containts -->
-		<div id="container" class="container" style="padding-top: 30px">
+		<div class="container" style="padding-top: 30px">
 			<!-- Page Header -->
 			<div class="row"><table class='table'>
 				<thead style="text-align: center">
 					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>メンバー管理</h2></td></tr>
-					<!-- Operating menues -->
-					<tr><td colspan=7 style="text-align: left">
-						<button class="btn btn-sm btn-success" type="submit" value="add_member" onclick="addNewMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規ユーザーの追加</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importMembersByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> ユーザーのインポート</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportMembersByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> ユーザーのエクスポート</button>
-						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択したユーザーの削除</button>
-					</td></tr>
+					<tr style="background-color:#343399; color:#ffffff;"><td><h2>メンバー管理</h2></td></tr>
 				</thead>
 			</table></div>
 			
+			<!-- Main containts -->
+			<div id="main" class="row">
+				<!-- Operating menues -->
+				<table id="operation" class="table" style="padding: 0px; margin: 0px">
+					<thead style="text-align: center">
+						<tr><td colspan=7 style="text-align: left">
+							<button class="btn btn-sm btn-success" type="submit" value="add_member" onclick="addNewMember();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規ユーザーの追加</button>
+							<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importMembersByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> ユーザーのインポート</button>
+							<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportMembersByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> ユーザーのエクスポート</button>
+							<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択したユーザーの削除</button>
+						</td></tr>
+					</thead>
+					<tr><td><p class="blink" style="color: red; text-align: justify; font-size: small;"><?php print($err); ?></p></td></tr>
+				</table>
+			</div>
+			
+			<div id="contents" class="row">
 			<?php
 				// Connect to the DB.
 				$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
@@ -95,9 +104,14 @@
 				// Fetch rows of projects. 
 				$rows_member = pg_fetch_all($result_select_member);
 				$row_count = 0 + intval(pg_num_rows($result_select_member));
+				
+				// Create section Label and show the total number of the registered project
+				echo "<h3>" . $row_count ."件のメンバーが登録されています。</h3>\n";
 			?>
+			</div>
+			
 			<!-- Members list -->
-			<div class="row"><table id="members" class='table table-striped'>
+			<div class="row"><table id='members' class='table table-striped' style='text-align:center; vertical-align:middle; padding:0px'>
 				<thead style="text-align: center">
 					<tr><td></td><td>Avatar</td><td style="width: 200px">氏名</td><td>ユーザー名</td><td>ユーザー種別</td></tr>
 				</thead>

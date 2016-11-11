@@ -76,7 +76,7 @@
 					
 					// Get a list of registered project.
 					// Create a SQL query string.
-					$sql_select_projects = "SELECT P.uuid, P.name, P.beginning, P.ending, P.phase, P.created, P.created_by FROM project AS P INNER JOIN role AS R ON R.prj_id = P.uuid WHERE R.mem_id = '".$userid."' ORDER by P.id";
+					$sql_select_projects = "SELECT P.uuid, P.name, P.beginning, P.ending, P.phase, P.created, P.created_by, P.faceimage FROM project AS P INNER JOIN role AS R ON R.prj_id = P.uuid WHERE R.mem_id = '".$userid."' ORDER by P.id";
 					
 					// Excute the query and get the result of query.
 					$result_select_projects = pg_query($dbconn, $sql_select_projects);
@@ -97,32 +97,41 @@
 					echo "\t\t\t\t<table id='project' class='table table-striped' style='text-align:center; vertical-align:middle; padding:0px'>\n";
 					echo "\t\t\t\t\t<form id='selection'>\n";
 					echo "\t\t\t\t\t\t<thead><tr>\n";
-					echo "\t\t\t\t\t\t\t<td style='width: auto'>プロジェクト名</td>\n";
+					echo "\t\t\t\t\t\t\t<td colspan='2' style='width: auto'>プロジェクト名</td>\n";
 					echo "\t\t\t\t\t\t\t<td style='width: 100px'>開始</td>\n";
 					echo "\t\t\t\t\t\t\t<td style='width: 100px'>終了</td>\n";
 					echo "\t\t\t\t\t\t\t<td style='width: 100px'>次数</td>\n";
-					echo "\t\t\t\t\t\t\t<td>操作パネル</td>\n";
+					echo "\t\t\t\t\t\t\t<td style='width: 160px'>操作パネル</td>\n";
 					echo "\t\t\t\t\t\t</tr></thead>\n";
 					
 					// For each row, HTML list is created and showed on browser.
 					foreach ($rows_project as $row_project){
 						// Get a value in each field.
-						$prj_uuid = $row_project['uuid'];		// Internal identifier of the project
-						$prj_name = $row_project['name'];	// Project name
-						$prj_begin = $row_project['beginning'];	// The date of the project begining.
-						$prj_end = $row_project['ending'];		// The date of the project ending.
-						$prj_phase = $row_project['phase'];			// The phase for the continuous project.
+						$prj_uuid = $row_project['uuid'];				// Internal identifier of the project
+						$prj_name = $row_project['name'];				// Project name
+						$prj_begin = $row_project['beginning'];			// The date of the project begining.
+						$prj_end = $row_project['ending'];				// The date of the project ending.
+						$prj_phase = $row_project['phase'];				// The phase for the continuous project.
+						$prj_fim = $row_project['faceimage'];			// The phase for the continuous project.
 						
 						// Build HTML tag elements using aquired field values.
 						echo "\t\t\t\t\t\t<tr>\n";
+						if($prj_fim != ""){
+							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$prj_uuid. "'><img height=96 src='avatar_project_face.php?uuid=" .$prj_uuid."' alt='img'/></a></td>";
+						} else {
+							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$prj_uuid. "'><img height=96 src='images/noimage.jpg' alt='img'/></a></td>";
+						}
 						echo "\t\t\t\t\t\t\t";
 						echo '<td style="text-align: left; vertical-align: middle;"> '.$prj_name .'</a></td>';
-						echo "\n\t\t\t\t\t\t<td style='width: 100px;vertical-align: middle;'>" . $prj_begin ."</td>\n";
+						echo "\n\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>" . $prj_begin ."</td>\n";
 						echo "\t\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>" . $prj_end ."</td>\n";
 						echo "\t\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>第" . $prj_phase ."次調査</td>\n";
 						echo "\t\t\t\t\t\t\t<td style='width: 300px; vertical-align: middle;'>";
-						echo '<a class="btn btn-default" style="cursor: pointer;" onclick=moveToProjectView("'.$prj_uuid.'");>プロジェクトの編集</a>';
-						echo '<a class="btn btn-default" style="cursor: pointer;" onclick=moveToConsolidationView("'.$prj_uuid.'");>資料の編集</a>';
+						if ($_SESSION["USERTYPE"] == "Administrator") {
+							echo '<a class="btn btn-success" style="cursor: pointer; width: 150px;" onclick=moveToProjectView("'.$prj_uuid.'");>プロジェクトの編集</a><br />';
+						}
+						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px; style="background-color: green" onclick=moveToConsolidationView("'.$prj_uuid.'");>資料の編集</a>';
+						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px" onclick=moveToMemberView("'.$prj_uuid.'");>概要の編集</a>';
 						echo "</td>\n";
 						echo "\t\t\t\t\t\t</tr>\n";
 					}

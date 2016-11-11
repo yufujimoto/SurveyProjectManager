@@ -12,7 +12,7 @@
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
-	$prj_id= $_REQUEST['uuid'];
+	$con_id= $_REQUEST['uuid'];
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -60,13 +60,13 @@
 			<div class="row"><table class='table'>
 				<thead style="text-align: center">
 					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>統合体の管理</h2></td></tr>
+					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>対象資料の管理</h2></td></tr>
 					<!-- Operating menues -->
 					<tr><td colspan=7 style="text-align: left">
-						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規統合体の追加</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 統合体のインポート</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 統合体のエクスポート</button>
-						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した統合体の削除</button>
+						<button class="btn btn-sm btn-success" type="submit" value="add_material" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 対象資料の追加</button>
+						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 対象資料のインポート</button>
+						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 対象資料のエクスポート</button>
+						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した対象資料の削除</button>
 					</td></tr>
 				</thead>
 			</table></div>
@@ -77,32 +77,32 @@
 				
 				// Get a list of registered project.
 				// Create a SQL query string.
-				$sql_select_consolidation = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
+				$sql_select_material = "SELECT * FROM material WHERE con_id = '".$con_id."' ORDER by id";
 				
 				// Excute the query and get the result of query.
-				$result_select_consolidation = pg_query($dbconn, $sql_select_consolidation);
-				if (!$result_select_consolidation) {
+				$result_select_material = pg_query($dbconn, $sql_select_material);
+				if (!$result_select_material) {
 					// Print the error messages and exit routine if error occors.
 					echo "An error occurred in DB query.\n";
 					exit;
 				}
 				
 				// Fetch rows of projects. 
-				$rows_consolidation = pg_fetch_all($result_select_consolidation);
-				$row_count = 0 + intval(pg_num_rows($result_select_consolidation));
+				$rows_material = pg_fetch_all($result_select_material);
+				$row_count = 0 + intval(pg_num_rows($result_select_material));
 				
 				// Create section Label and show the total number of the registered project
 				echo "<h3>" . $row_count ."件の統合体が登録されています。</h3>\n";
 			?>
 			<!-- Members list -->
 			<div class="row">
-				<table id="consolidation" class='table table-striped'>
+				<table id="material" class='table table-striped'>
 				<thead style="text-align: center">
 					<tr><td colspan="3" style="width: 200px">名称</td><td>場所</td><td style="width: 100px">開始時期</td><td style="width: 100px">終了時期</td><td style="width: 300px">備考</td><td>操作パネル</td></tr>
 				</thead>
 				<?php
 					echo "<form id='selection'>\n";
-					foreach ($rows_consolidation as $row){
+					foreach ($rows_material as $row){
 						$con_uuid = $row['uuid'];
 						$con_nam = $row['name'];
 						$con_fim = $row['faceimage'];
@@ -113,9 +113,9 @@
 						
 						echo "\t\t\t\t\t<tr style='text-align: center;'><td style='vertical-align: middle;'><input type='radio' name='member' value='" .$con_uuid. "' /></td>";
 						if($con_fim != ""){
-							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$con_uuid. "'><img height=96 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/></a></td>";
+							echo "<td style='vertical-align: middle;'><a href='project_materials_view.php?uuid=" .$con_uuid. "'><img height=96 src='avatar_material_face.php?uuid=" .$con_uuid."' alt='img'/></a></td>";
 						} else {
-							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$con_uuid. "'><img height=96 src='images/noimage.jpg' alt='img'/></a></td>";
+							echo "<td style='vertical-align: middle;'><a href='project_materials_view.php?uuid=" .$con_uuid. "'><img height=96 src='images/noimage.jpg' alt='img'/></a></td>";
 						}
 						echo "<td style='vertical-align: middle;'>". $con_nam. "</td>";
 						echo "<td style='vertical-align: middle;'>". $con_gnm. "</td>";
@@ -137,18 +137,18 @@
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
 			function addNewConsolidation() {
-				window.location.href = "add_consolidation.php?uuid=<?php echo $prj_id; ?>";
+				window.location.href = "add_material.php?uuid=<?php echo $prj_id; ?>";
 				return false;
 			}
 			
 			function importConsolidationByCsv() {
-				window.location.href = "project_consolidations_add_csv.php";
+				window.location.href = "project_materials_add_csv.php";
 				
 				return false;
 			}
 			
 			function ExportConsolidationByCsv() {
-				window.location.href = "project_consolidations_export_csv.php";
+				window.location.href = "project_materials_export_csv.php";
 				return false;
 			}
 			
@@ -158,7 +158,7 @@
 			}
 			
 			function deleteASelectedConsolidation() {
-				var table=document.getElementById("consolidation");
+				var table=document.getElementById("material");
 				var selection = document.getElementById('selection');
 				var rowCount=table.rows.length;
 				
@@ -177,7 +177,7 @@
 								table.deleteRow(i+1);
 								
 								// Send the member id to the PHP script to drop selected project from DB.
-								window.location.href = "delete_consolidation.php?uuid=" + con_uuid;
+								window.location.href = "delete_material.php?uuid=" + con_uuid;
 								
 								// only one radio can be logically checked, don't check the rest
 								break;
