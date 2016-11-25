@@ -23,13 +23,65 @@ COMMENT ON COLUMN public.project.uuid IS
 'This attribute defines global unique id of the project.
 This unique id is used for identifying each project globaly, and it enables
 to merge different projects.';
-COMMENT ON COLUMN public.project.name IS 'This attribute defines the name of the project.';
-COMMENT ON COLUMN public.project.title IS 'This attribute defines the title of the project.';
-COMMENT ON COLUMN public.project.beginning IS 'This attribute defines the date of the project beginning.';
-COMMENT ON COLUMN public.project.ending IS 'This attribute defines the date of the project ending.';
-COMMENT ON COLUMN public.project.ending IS 'This attribute defines the phase of the project.';
-COMMENT ON COLUMN public.project.introduction IS 'This attribute can be used for introduction of the survey report.';
-COMMENT ON COLUMN public.project.descriptions IS 'This attribute can be used for describing additional information about the project.';
+COMMENT ON COLUMN public.project.name IS 
+'This attribute defines the name of the project.';
+COMMENT ON COLUMN public.project.title IS 
+'This attribute defines the title of the project.';
+COMMENT ON COLUMN public.project.beginning IS 
+'This attribute defines the date of the project beginning.';
+COMMENT ON COLUMN public.project.ending IS 
+'This attribute defines the date of the project ending.';
+COMMENT ON COLUMN public.project.phase IS 
+'This attribute defines the phase of the project.';
+COMMENT ON COLUMN public.project.introduction IS 
+'This attribute can be used for introducing this survey in the report.';
+COMMENT ON COLUMN public.project.descriptions IS 
+'This attribute can be used for describing additional information about the project.';
+
+/* SurveyReport */
+CREATE TABLE report (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ title VARCHAR(255),
+ volume VARCHAR(255),
+ edition VARCHAR(255),
+ series VARCHAR(255),
+ publisher VARCHAR(255),
+ year date,
+ descriptions TEXT
+);
+COMMENT ON TABLE public.report IS
+'This table defines information about the survey report.
+This table includes general citation information.';
+
+
+CREATE TABLE section (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ rep_id VARCHAR(36) NOT NULL REFERENCES report(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ modified_by VARCHAR(36) NOT NULL,
+ order_number INT,
+ section_name VARCHAR(255),
+ date_created TIMESTAMP WITH TIME ZONE,
+ date_modified TIMESTAMP WITH TIME ZONE
+);
+COMMENT ON TABLE public.section IS
+'This table defines sections of the survey report.
+Any kinds of explainations are denoted in this section.';
+
+
+CREATE TABLE article (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ sec_id VARCHAR(36) NOT NULL REFERENCES section(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ modified_by VARCHAR(36) NOT NULL,
+ title VARCHAR(255),
+ written_by VARCHAR(255),
+ body TEXT,
+ date_created TIMESTAMP WITH TIME ZONE,
+ date_modified TIMESTAMP WITH TIME ZONE
+);
 
 /* Organization */
 CREATE TABLE organization (
@@ -55,6 +107,7 @@ COMMENT ON COLUMN public.organization.city IS 'This attribute defines the city w
 COMMENT ON COLUMN public.organization.contact_address IS 'This attribute defines the contact address where the organization located. Defined by CI_Contact.';
 COMMENT ON COLUMN public.organization.zipcode IS 'This attribute defines the zip code where the organization located. Defined by CI_Contact..';
 COMMENT ON COLUMN public.organization.phone IS 'This attribute defines the phone number of the organization. Defined by CI_Contact.';
+
 
 /* Member */
 CREATE TABLE member (
@@ -102,7 +155,7 @@ CREATE TABLE role (
  biography TEXT
 );
 
-
+/* Consolidation */
 CREATE TABLE consolidation (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -118,14 +171,7 @@ CREATE TABLE consolidation (
  descriptions TEXT
 );
 
-CREATE TABLE consolidation_of_consolidation (
- id SERIAL NOT NULL,
- uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- parent VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- child VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- descriptions TEXT
-);
-
+/* Material */
 CREATE TABLE material (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -140,6 +186,93 @@ CREATE TABLE material (
  descriptions TEXT
 );
 
+CREATE TABLE digitized_image (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ con_id VARCHAR(36) REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ mat_id VARCHAR(36) REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ filename		varchar,
+ image			bytea,
+ thumbnail		bytea,
+ descriptions VARCHAR(255),
+ exif_orientation	varchar,
+ exif_version		varchar,
+ exif_imagewidth		integer,
+ exif_imageheight	integer,
+ exif_datetimeoriginal	timestamp,
+ exif_datetimedigitized	timestamp,
+ exif_datetime		timestamp,
+ exif_make		varchar,
+ exif_model		varchar,
+ exif_fnumber		double precision,
+ exif_focallength	double precision,
+ exif_isospeedratings	integer,
+ exif_exposuretime	varchar,
+ exif_maxaperturevalue	varchar,
+ exif_flash		varchar,
+ exif_meteringmode	varchar,
+ exif_lightsource	varchar,
+ exif_exposureprogram	varchar,
+ exif_colorspace		varchar,
+ exif_ycbcrpositioning	varchar,
+ exif_compesedbitsperpixel	 double precision,
+ exif_xresolution	integer,
+ exif_yresolution	integer,
+ exif_resolutionunit	varchar,
+ exif_gps_datestamp	timestamp,
+ exif_gps_timestamp	timestamp,
+ exif_gps_measuremode	varchar,
+ exif_gps_mapdatum	varchar,
+ exif_gps_dop		double precision,
+ exif_gps_status		varchar,
+ exif_gps_latitude	double precision,
+ exif_gps_latituderef	varchar,
+ exif_gps_longitude	double precision,
+ exif_gps_longituderef	varchar,
+ exif_gps_altitude	double precision,
+ exif_gps_altituderef	varchar,
+ exif_gps_imgdirection	double precision,
+ exif_gps_imgdirectionref	varchar,
+ exif_gps_speed		double precision,
+ exif_gps_track		varchar,
+ exif_gps_trackref	varchar,
+ exif_gps_speedref	varchar,
+ exif_gps_differential	varchar
+);
+
+CREATE TABLE additional_information (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ con_id VARCHAR(36) REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ mat_id VARCHAR(36) REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ key VARCHAR(255),
+ value VARCHAR(255),
+ type VARCHAR(50)
+);
+COMMENT ON TABLE public.additional_information IS 
+'This table defines additional information.
+Users can define specific attributes freely.';
+COMMENT ON COLUMN public.additional_information.key IS 
+'This column defines the name of the entry.';
+COMMENT ON COLUMN public.additional_information.value IS 
+'This column defines the value of the entry.';
+COMMENT ON COLUMN public.additional_information.type IS 
+'This column defines the data type for this entry to cast data types.';
+
+
+/*==== Relationships between tables ====*/
+/* Consolidation of Consolidation*/
+CREATE TABLE consolidation_of_consolidation (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ parent VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ child VARCHAR(36) NOT NULL REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ descriptions TEXT
+);
+
+/* Material of Material */
 CREATE TABLE material_to_material (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
@@ -149,19 +282,22 @@ CREATE TABLE material_to_material (
  descriptions VARCHAR(255)
 );
 
-
-
-
-
-CREATE TABLE report (
- reportid INT NOT NULL,
- projectid INT NOT NULL,
- name VARCHAR(255)
+/* Figures in articles */
+CREATE TABLE figure (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ art_id VARCHAR(36) NOT NULL REFERENCES article(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ img_id VARCHAR(36) NOT NULL REFERENCES digitized_image(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ label VARCHAR(10),
+ number VARCHAR(10),
+ description TEXT
 );
 
-ALTER TABLE report ADD CONSTRAINT PK_report PRIMARY KEY (reportid,projectid);
 
 
+
+
+/* ---------------------------------------------------------------------------------------------------------- */
 CREATE TABLE surface (
  surfaceid VARCHAR(255) NOT NULL,
  materialid INT NOT NULL,
@@ -198,9 +334,6 @@ CREATE TABLE keywords (
 ALTER TABLE keywords ADD CONSTRAINT PK_keywords PRIMARY KEY (keywordsid,materialid,consolidationid,projectid);
 
 
-
-
-
 CREATE TABLE Subject (
  subjectid INT NOT NULL,
  surfaceid VARCHAR(255) NOT NULL,
@@ -224,23 +357,6 @@ CREATE TABLE device_specification (
 );
 
 ALTER TABLE device_specification ADD CONSTRAINT PK_device_specification PRIMARY KEY (specid,equipmentsid,projectid);
-
-
-
-CREATE TABLE section (
- sectionid INT NOT NULL,
- reportid INT NOT NULL,
- projectid INT NOT NULL,
- modified_by INT NOT NULL,
- organizationid INT NOT NULL,
- order_number INT,
- section_name VARCHAR(255),
- body_text VARCHAR(255),
- date_created TIMESTAMP WITH TIME ZONE,
- date_modified TIMESTAMP WITH TIME ZONE
-);
-
-ALTER TABLE section ADD CONSTRAINT PK_section PRIMARY KEY (sectionid,reportid,projectid,modified_by,organizationid);
 
 
 CREATE TABLE surveydiary (
