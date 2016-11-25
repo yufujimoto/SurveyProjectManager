@@ -151,7 +151,7 @@
 				
 				pg_close($dbconn);
 			?>
-			<<div id="contents" class="row">
+			<div id="contents" class="row">
 		</div>
 		
 		<!-- Javascript -->

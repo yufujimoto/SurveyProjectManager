@@ -64,9 +64,9 @@
 					<!-- Operating menues -->
 					<tr><td colspan=7 style="text-align: left">
 						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規統合体の追加</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 統合体のインポート</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 統合体のエクスポート</button>
-						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した統合体の削除</button>
+						<!-- <button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 統合体のインポート</button> -->
+						<!-- <button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 統合体のエクスポート</button> -->
+						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteSelectedConsolidation();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した統合体の削除</button>
 					</td></tr>
 				</thead>
 			</table></div>
@@ -122,7 +122,7 @@
 						echo "<td style='vertical-align: middle;'>". $con_beg. "</td>";
 						echo "<td style='vertical-align: middle;'>". $con_end. "</td>";
 						echo "<td style='text-align:left; vertical-align: middle;'>". $con_dsc. "</td>";
-						echo "<td style='vertical-align: middle;'>\n";
+						echo "<td style='vertical-align: top;'>\n";
 						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px; style="background-color: green" onclick=moveToEditConsolidation("'.$con_uuid.'");>統合体の編集</a><br />';
 						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px; style="background-color: green" onclick=moveToMaterials("'.$con_uuid.'");>資料細目の編集</a>'."</td></tr>\n";
 					}
@@ -153,11 +153,11 @@
 			}
 			
 			function moveToMaterials(){
-				window.location.href = "material.php";
+				window.location.href = "material.php?uuid=<?php echo $con_uuid; ?>";
 				return false;
 			}
 			
-			function deleteASelectedConsolidation() {
+			function deleteSelectedConsolidation() {
 				var table=document.getElementById("consolidation");
 				var selection = document.getElementById('selection');
 				var rowCount=table.rows.length;
@@ -171,13 +171,14 @@
 							
 							if (checked) {
 								// Get a project id of the selected item.
+								prj_id = "<?php echo $prj_id;?>";
 								con_uuid = selection[i].value;
 								
 								// Get the selected row and delete the row. 
 								table.deleteRow(i+1);
 								
 								// Send the member id to the PHP script to drop selected project from DB.
-								window.location.href = "delete_consolidation.php?uuid=" + con_uuid;
+								window.location.href = "delete_consolidation.php?uuid=" + con_uuid + "&prj_id=" + prj_id;
 								
 								// only one radio can be logically checked, don't check the rest
 								break;

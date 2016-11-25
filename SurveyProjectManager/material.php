@@ -64,7 +64,7 @@
 					<!-- Operating menues -->
 					<tr><td colspan=7 style="text-align: left">
 						<button class="btn btn-sm btn-success" type="submit" value="add_material" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 対象資料の追加</button>
-						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 対象資料のインポート</button>
+						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidation();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 対象資料のインポート</button>
 						<button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 対象資料のエクスポート</button>
 						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteASelectedMember();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した対象資料の削除</button>
 					</td></tr>
@@ -137,12 +137,12 @@
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
 			function addNewConsolidation() {
-				window.location.href = "add_material.php?uuid=<?php echo $prj_id; ?>";
+				window.location.href = "add_material.php?uuid=<?php echo $con_id; ?>";
 				return false;
 			}
 			
-			function importConsolidationByCsv() {
-				window.location.href = "project_materials_add_csv.php";
+			function importConsolidation() {
+				window.location.href = "import_materials.php?uuid=<?php echo $con_id; ?>";
 				
 				return false;
 			}

@@ -56,24 +56,24 @@
     $end = str_replace("''", "NULL", "'".$_POST['end']."'");
     $desc = str_replace("''", "NULL", "'".$_POST['desc']."'");
     
-    if (!$extnt=="NULL") {
+    if ($extnt!="NULL") {
         $extent = "ST_MakePolygon(ST_GeomFromText('".$extnt."'),".SRID.")";
     } else {
         $extent = "NULL";
     }
     
-    if (!$lat=="NULL" and !$lon=="NULL"){
+    if ($lat!="NULL" and $lon!="NULL"){
         $reppt = "ST_SetSRID(ST_MakePoint($lat, $lon), ".SRID.")";
     } else {
         $reppt = "NULL";
     }
     
-    if (!$esta=="NULL") {
+    if ($esta!="NULL") {
         $estimatedarea = "ST_MakePolygon(ST_GeomFromText('".$esta."'),".SRID.")";
     } else {
         $estimatedarea = "NULL";
     }
-    
+        
     try{
         // Insert new record into the project table.
         $sql_inssert = "INSERT INTO consolidation (

@@ -364,5 +364,6 @@
 					modal.style.display = "none";
 				}
 			};
+		</script>
 	</body>
 </html>
