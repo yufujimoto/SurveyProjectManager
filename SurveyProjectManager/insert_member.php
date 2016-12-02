@@ -4,38 +4,38 @@
     require "lib/config.php";
     
     // Connect to the Database.
-    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
     
     $mem_bdy_y = "1900";
     $mem_bdy_m = "01";
     $mem_bdy_d = "01";
     
-    if (!$_POST['mem_unm']) {
+    if (!$_REQUEST['mem_unm']) {
         $err = "ユーザー名が空白です。";
         header("Location: add_member.php?err=".$err);
         exit ;
     }
     
-    if (!$_POST['mem_pwd']) {
+    if (!$_REQUEST['mem_pwd']) {
         $err = "パスワードが空白です。";
         header("Location: add_member.php?err=".$err);
         exit ;
     }
     
-    if (!$_POST['mem_eml']) {
+    if (!$_REQUEST['mem_eml']) {
         $err = "メールアドレスは必須です。";
         header("Location: add_member.php?err=".$err);
         exit ;
     }
     
-    if (!$_POST['org_nam']) {
+    if (!$_REQUEST['org_nam']) {
         $err = "組織名は必須です。";
         header("Location: add_member.php?err=".$err);
         exit ;
     }
     
     // Get avatar.
-    $mem_avatar = $_POST['mem_avt'];
+    $mem_avatar = $_REQUEST['mem_avt'];
 	if ($mem_avatar != "") {
 		if (file_exists("uploads/".$mem_avatar)) {
 			$filename = "uploads/thumbnail_".$mem_avatar;
@@ -58,36 +58,36 @@
     
     // Parameters for organization.
     $org_uid = "'".GUIDv4()."'";
-    $org_nam = str_replace("''", "NULL", "'".$_POST['org_nam']."'");
-    $org_sec = str_replace("''", "NULL", "'".$_POST['org_sec']."'");
-    $org_zip = str_replace("''", "NULL", "'".$_POST['org_zip']."'");
+    $org_nam = str_replace("''", "NULL", "'".$_REQUEST['org_nam']."'");
+    $org_sec = str_replace("''", "NULL", "'".$_REQUEST['org_sec']."'");
+    $org_zip = str_replace("''", "NULL", "'".$_REQUEST['org_zip']."'");
     $org_cnt = "'日本'";
-    $org_adm = str_replace("''", "NULL", "'".$_POST['org_adm']."'");
-    $org_cty = str_replace("''", "NULL", "'".$_POST['org_cty']."'");
-    $org_add = str_replace("''", "NULL", "'".$_POST['org_add']."'");
-    $org_phn = str_replace("''", "NULL", "'".$_POST['org_phn']."'");
-    "NULL";
+    $org_adm = str_replace("''", "NULL", "'".$_REQUEST['org_adm']."'");
+    $org_cty = str_replace("''", "NULL", "'".$_REQUEST['org_cty']."'");
+    $org_add = str_replace("''", "NULL", "'".$_REQUEST['org_add']."'");
+    $org_phn = str_replace("''", "NULL", "'".$_REQUEST['org_phn']."'");
+   
     // Parameters for member.
     $mem_uid = "'".GUIDv4()."'";
     $mem_avt = $escaped;
-    $mem_snm = str_replace("''", "NULL", "'".$_POST['mem_snm']."'");
-    $mem_fnm = str_replace("''", "NULL", "'".$_POST['mem_fnm']."'");
-    $mem_bdy_y = $_POST['mem_bdy_y'];
-    $mem_bdy_m = $_POST['mem_bdy_m'];
-    $mem_bdy_d = $_POST['mem_bdy_d'];
+    $mem_snm = str_replace("''", "NULL", "'".$_REQUEST['mem_snm']."'");
+    $mem_fnm = str_replace("''", "NULL", "'".$_REQUEST['mem_fnm']."'");
+    $mem_bdy_y = $_REQUEST['mem_bdy_y'];
+    $mem_bdy_m = $_REQUEST['mem_bdy_m'];
+    $mem_bdy_d = $_REQUEST['mem_bdy_d'];
     $mem_bdy = str_replace("'--'", "NULL", "'".$mem_bdy_y."-".$mem_bdy_m."-".$mem_bdy_d."'");
-    $mem_zip = str_replace("''", "NULL", "'".$_POST['mem_zip']."'");
+    $mem_zip = str_replace("''", "NULL", "'".$_REQUEST['mem_zip']."'");
     $mem_cnt = str_replace("''", "NULL", "'日本'");
-    $mem_adm = str_replace("''", "NULL", "'".$_POST['mem_adm']."'");
-    $mem_cty = str_replace("''", "NULL", "'".$_POST['mem_cty']."'");
-    $mem_add = str_replace("''", "NULL", "'".$_POST['mem_add']."'");
-    $mem_phn = str_replace("''", "NULL", "'".$_POST['mem_phn']."'");
-    $mem_mph = str_replace("''", "NULL", "'".$_POST['mem_mph']."'");
-    $mem_eml = str_replace("''", "NULL", "'".$_POST['mem_eml']."'");
-    $mem_apt = str_replace("''", "NULL", "'".$_POST['mem_apt']."'");
-    $mem_unm = str_replace("''", "NULL", "'".$_POST['mem_unm']."'");
-    $mem_pwd = str_replace("''", "NULL", "'".password_hash($_POST['mem_pwd'], PASSWORD_DEFAULT)."'");
-    $mem_typ = str_replace("''", "NULL", "'".$_POST['mem_typ']."'");
+    $mem_adm = str_replace("''", "NULL", "'".$_REQUEST['mem_adm']."'");
+    $mem_cty = str_replace("''", "NULL", "'".$_REQUEST['mem_cty']."'");
+    $mem_add = str_replace("''", "NULL", "'".$_REQUEST['mem_add']."'");
+    $mem_phn = str_replace("''", "NULL", "'".$_REQUEST['mem_phn']."'");
+    $mem_mph = str_replace("''", "NULL", "'".$_REQUEST['mem_mph']."'");
+    $mem_eml = str_replace("''", "NULL", "'".$_REQUEST['mem_eml']."'");
+    $mem_apt = str_replace("''", "NULL", "'".$_REQUEST['mem_apt']."'");
+    $mem_unm = str_replace("''", "NULL", "'".$_REQUEST['mem_unm']."'");
+    $mem_pwd = str_replace("''", "NULL", "'".password_hash($_REQUEST['mem_pwd'], PASSWORD_DEFAULT)."'");
+    $mem_typ = str_replace("''", "NULL", "'".$_REQUEST['mem_typ']."'");
 	
     try {
         // Insert new record into the organization table
@@ -113,11 +113,11 @@
                             $org_phn
                         )";
         
-        $sql_org_result = pg_query($dbconn, $sql_org_inssert);
+        $sql_org_result = pg_query($conn, $sql_org_inssert);
         
         // Check the result.
         if (!$sql_org_result) {
-            $err = pg_last_error($dbconn);
+            $err = pg_last_error($conn);
             
 			// Delete the temporal files.
 			unlink("uploads/".$mem_avatar);
@@ -168,12 +168,15 @@
                             $mem_typ
                         )";
         
-        $sql_mem_result = pg_query($dbconn, $sql_mem_inssert);
+        $sql_mem_result = pg_query($conn, $sql_mem_inssert);
 		
         // Check the result.
         if (!$sql_mem_result) {
 			// Get the error messages.
-            $err = pg_last_error($dbconn);
+            $err = pg_last_error($conn);
+			
+			// close the connection to DB.
+			pg_close($conn);
 			
 			// Delete the temporal files.
 			unlink("uploads/".$mem_avatar);
@@ -186,6 +189,9 @@
     } catch (Exception $err) {
         $err->getMessage();
 		
+		// close the connection to DB.
+		pg_close($conn);
+		
 		// Delete the temporal files.
         unlink("uploads/".$mem_avatar);
 		unlink("uploads/thumbnail_".$mem_avatar);
@@ -194,6 +200,9 @@
 		header("Location: add_member.php?err=".$err);
     }
     
+	// close the connection to DB.
+	pg_close($conn);
+	
 	// Move to login page.
     header("Location: login.php");
 ?>

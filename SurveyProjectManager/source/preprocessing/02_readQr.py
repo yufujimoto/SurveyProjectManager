@@ -95,7 +95,7 @@ def getQr(path):
     # obtain image data
     pil = Image.open(path).convert('L')
     width, height = pil.size
-    raw = pil.tostring()
+    raw = pil.tobytes()
     
     # wrap image data
     image = zbar.Image(width, height, 'Y800', raw)

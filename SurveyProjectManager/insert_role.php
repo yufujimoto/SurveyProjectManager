@@ -3,20 +3,29 @@
     require "lib/password.php";
     require "lib/config.php";
     
+	// Initialyze the error message.
+	$err = "";
+	
     // Connect to the Database.
-    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $conn = pg_connect(
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS
+			) or die('Connection failed: ' . pg_last_error());
     
     $rol_pid = "'".$_REQUEST['prj_uuid']."'";
-    if(!empty($_POST['prj_mem'])) {
-        foreach($_POST['prj_mem'] as $check) {
+    if(!empty($_REQUEST['prj_mem'])) {
+        foreach($_REQUEST['prj_mem'] as $check) {
             $rol_uid = "'".GUIDv4()."'";
             $rol_mid = "'".$check."'";
-            $rol_frm = str_replace("''","NULL","'".$_POST['from_'.$check]."'");
-            $rol_end = str_replace("''","NULL","'".$_POST['to_'.$check]."'");
+            $rol_frm = str_replace("''","NULL","'".$_REQUEST['from_'.$check]."'");
+            $rol_end = str_replace("''","NULL","'".$_REQUEST['to_'.$check]."'");
             
             try {
                 // Insert new record into the organization table
-                $sql_rol_inssert = "INSERT INTO role (
+                $sql_inssert_rol = "INSERT INTO role (
                                     uuid,
                                     prj_id,
                                     mem_id,
@@ -29,27 +38,30 @@
                                     $rol_frm,
                                     $rol_end
                                 )";
-                
-                $sql_rol_result = pg_query($dbconn, $sql_rol_inssert);
+                // Get the result of the query.
+                $sql_result_rol = pg_query($conn, $sql_inssert_rol);
                 
                 // Check the result.
-                if (!$sql_rol_result) {
-                    $err = pg_last_error($dbconn);
-                    pg_close($dbconn);
+                if (!$sql_result_rol) {
+					// Get the error message.
+                    $err = pg_last_error($conn);
+                    pg_close($conn);
                     
                     // Back to member add page.
-                    header("Location: edit_project.php?uuid=".$_REQUEST['prj_uuid']);
+                    header("Location: edit_project.php?uuid=".$_REQUEST['prj_uuid']."&err=".$err);
                 }
             } catch (Exception $err) {
-                $err->getMessage();
-                pg_close($dbconn);
+				// Get the error message.
+                $err -> getMessage();
+                pg_close($conn);
                 
                 // Back to member add page.
-                header("Location: edit_project.php?uuid=".$_REQUEST['prj_uuid']);
+                header("Location: edit_project.php?uuid=".$_REQUEST['prj_uuid']."&err=".$err);
             }
         }
     }
-    pg_close($dbconn);
+	// Close the connection.
+    pg_close($conn);
     
 	// Move to login page.
     header("Location: edit_project.php?uuid=".$_REQUEST['prj_uuid']);

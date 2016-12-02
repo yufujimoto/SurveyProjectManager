@@ -11,16 +11,16 @@
     require "lib/config.php";
     
     // Connect to the Database.
-    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
     
-    if (!$_POST['name']) {
+    if (!$_REQUEST['name']) {
         $err = "プロジェクト名が空白です。";
         header("Location: add_project.php?err=".$err);
         exit ;
     }
     
     // Get avatar.
-    $prj_faceimage = $_POST['prj_fimg'];
+    $prj_faceimage = $_REQUEST['prj_fimg'];
 	if ($prj_faceimage != "") {
 		if (file_exists("uploads/".$prj_faceimage)) {
 			$filename = "uploads/thumbnail_".$prj_faceimage;
@@ -46,14 +46,14 @@
     date_default_timezone_set('Asia/Tokyo');
     
     $uuid = "'".GUIDv4()."'";
-    $name = "'".$_POST['name']."'";
-    $title = str_replace("''", "NULL", "'".$_POST['title']."'");
-    $begin = str_replace("'--'", "NULL", "'".$_POST['date_from']."'");
-    $end = str_replace("'--'", "NULL", "'".$_POST['date_to']."'");
-    $phase = $_POST['phase'];
-    $intro = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_POST['intro']))."'");
-    $cause = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_POST['cause']))."'");
-    $desc = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_POST['desc']))."'");
+    $name = "'".$_REQUEST['name']."'";
+    $title = str_replace("''", "NULL", "'".$_REQUEST['title']."'");
+    $begin = str_replace("'--'", "NULL", "'".$_REQUEST['date_from']."'");
+    $end = str_replace("'--'", "NULL", "'".$_REQUEST['date_to']."'");
+    $phase = $_REQUEST['phase'];
+    $intro = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_REQUEST['intro']))."'");
+    $cause = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_REQUEST['cause']))."'");
+    $desc = str_replace("''", "NULL", "'".nl2br(htmlspecialchars($_REQUEST['desc']))."'");
     $now = str_replace("''", "NULL", "'".date('Y-m-d G:i:s', time())."'");
     $user = str_replace("''", "NULL", "'".$_SESSION['USERNAME']."'");
     $faceimage = $escaped;
@@ -87,12 +87,15 @@
                             $user,
                             '{$faceimage}'
                         )";
-        $sql_result = pg_query($dbconn, $sql_inssert);
+        $sql_result = pg_query($conn, $sql_inssert);
         
         // Check the result.
         if (!$sql_result) {
             // Get the error message.
-            $err = pg_last_error($dbconn);
+            $err = pg_last_error($conn);
+			
+			// close the connection to DB.
+			pg_close($conn);
             
             // Back to projects page.
             header("Location: project.php?err=".$err);
@@ -100,6 +103,9 @@
     } catch (Exception $err) {
         // Get the error message.
         $err->getMessage();
+		
+		// close the connection to DB.
+		pg_close($conn);
         
         // Back to projects page.
         header("Location: project.php?err=".$err);
@@ -107,4 +113,7 @@
     
     // Back to projects page without error messages.
     header("Location: project.php");
+	
+	// close the connection to DB.
+	pg_close($conn);
 ?>

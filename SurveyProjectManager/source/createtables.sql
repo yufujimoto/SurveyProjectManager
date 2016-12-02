@@ -117,7 +117,7 @@ CREATE TABLE member (
  avatar BYTEA,
  surname VARCHAR(255),
  firstname VARCHAR(255),
- birthday TIMESTAMP WITH TIME ZONE,
+ birthday DATE,
  country VARCHAR(255),
  administrativearea VARCHAR(255),
  city VARCHAR(255),
@@ -244,7 +244,7 @@ CREATE TABLE digitized_image (
 CREATE TABLE additional_information (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ prj_id VARCHAR(36) REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  con_id VARCHAR(36) REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  mat_id VARCHAR(36) REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  key VARCHAR(255),

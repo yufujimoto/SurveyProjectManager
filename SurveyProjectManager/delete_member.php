@@ -5,8 +5,8 @@
 	require "lib/config.php";
 	
 	// Establish the connection to DB.
-	$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
-	if (!$dbconn) {
+	$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	if (!$conn) {
 		echo "An error occurred in DB connection.\n";
 		exit;
 	}
@@ -16,13 +16,13 @@
 	try {
 		// Finally Delete the project.
 		$sql_del_prj = "DELETE FROM member WHERE uuid='". $uuid."'";
-		$res_del_prj = pg_query($dbconn, $sql_del_prj);
+		$res_del_prj = pg_query($conn, $sql_del_prj);
 	} catch (Exception $e) {
 		$err = 'Caught exception: ';
 		header('Location: member.php');
 	}
 	// close the connection to DB.
-	pg_close($dbconn);
+	pg_close($conn);
 	
 	// Return to home.
 	header('Location: member.php');

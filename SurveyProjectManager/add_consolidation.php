@@ -1,4 +1,5 @@
 <?php
+	// Start the session.
     session_start();
     
     // Check session status.
@@ -11,22 +12,24 @@
 		header("Location: main.php");
 	}
 	
+	// Load external libraries.
 	require 'lib/guid.php';
     require "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
-	// Open the connection to DB
-	$err = $_GET['err'];
-	$prj_id = $_GET['uuid'];
-	$uuid = uniqid($_SESSION["USERNAME"]."_");
-	$img = "uploads/".$uuid.".jpg";
-	$tmg = "uploads/thumbnail_".$uuid.".jpg";
+	// Get parameters from post.
+	$err = $_REQUEST['err'];
+	$prj_id = $_REQUEST['uuid'];
+	
+	// Generate unique ID for saving temporal files.
+	$tmp_name = uniqid($_SESSION["USERNAME"]."_");
 ?>
 <!DOCTYPE html>
 <html lang="ja">
 	<head>
-		<title>SurveyProjectManager</title>
+		<title>Consolidation</title>
+		
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -44,6 +47,7 @@
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
+		<!-- Import external scripts for generating image -->
 		<script type="text/javascript" src="lib/refreshImage.js"></script>
 		
 		<!-- Import external scripts for calendar control -->
@@ -54,17 +58,17 @@
 		<!-- Extension of the Bootstrap CSS for file uploads -->
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
 		<script>
-			$(document).on('change', '.btn-file :file', function() {
+			$(document).on("change", ".btn-file :file", function() {
 				var input = $(this),
 				numFiles = input.get(0).files ? input.get(0).files.length : 1,
-				label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-				input.trigger('fileselect', [numFiles, label]);
+				label = input.val().replace(/\\/g, "/").replace(/.*\//, "");
+				input.trigger("fileselect", [numFiles, label]);
 			});
 				
 			$(document).ready( function() {
-				$('.btn-file :file').on('fileselect', function(event, numFiles, label) {
-					var input = $(this).parents('.input-group').find(':text'),
-					log = numFiles > 1 ? numFiles + ' files selected' : label;
+				$(".btn-file :file").on("fileselect", function(event, numFiles, label) {
+					var input = $(this).parents(".input-group").find(":text"),
+					log = numFiles > 1 ? numFiles + " files selected" : label;
 					
 					if( input.length ) {
 						input.val(log);
@@ -75,11 +79,10 @@
 			});
 		</script>
 		
-		<script src="https://openlayers.org/en/v3.19.1/build/ol.js" type="text/javascript"></script>
-		
+		<!-- Get an avatar image on load. -->
 		<script>
 			function doOnLoad(){
-				refreshAvatar(id="<?php echo $uuid;?>",h=400,w="",target="consolidation");
+				refreshAvatar(id="<?php echo $tmp_name;?>",h=400,w="",target="consolidation");
 			}
 		</script>
 	</head>
@@ -108,21 +111,45 @@
 		<!-- Main containts -->
 		<div class="container" style="margin: 0 auto; padding-top: 30px;">
 			<!-- Page Header -->
-			<div class="row"><table class='table'>
-				<thead style="text-align: center">
-					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td><h2>プロジェクトの登録</h2></td></tr>
-				</thead>
-			</table></div>
+			<!-- Page Header -->
+			<div class="row">
+				<table class="table">
+					<thead style="text-align: center">
+						<!-- Main Label of CSV uploader -->
+						<tr style="background-color:#343399; color:#ffffff;">
+							<td>
+								<h2>統合体登録フォーム</h2>
+							</td>
+						</tr>
+						<!-- Display Errors -->
+						<tr>
+							<td>
+								<p style="color: red; text-align: left"><?php echo $err; ?></p>
+							</td>
+						</tr>
+					</thead>
+				</table>
+			</div>
 
 			<!-- Avatar -->
 			<div class="row">
-				<table class='table table' style="border: hidden">
+				<table class="table table" style="border: hidden">
 					<!-- iFrame for showing Avatar -->
-					<tr style="text-align: center"><td colspan="2">
-							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?target=consolidation&hight=400&width=600"></iframe>
-					</td></tr>
-					<tr><form id="form_avatar" method="post" enctype="multipart/form-data">
+					<tr style="text-align: center">
+						<td colspan="2">
+							<iframe name="iframe_avatar"
+									style="width: 610px;
+									height: 410px;
+									border:
+									hidden;
+									border-color: #999999;"
+									src="avatar_uploaded.php?target=consolidation&hight=400&width=600">
+							</iframe>
+						</td>
+					</tr>
+					<!-- Upload dialogue. -->
+					<tr>
+						<form id="form_avatar" method="post" enctype="multipart/form-data">
 						<td style="width: auto">
 							<div class="input-group">
 								<span class="input-group-btn">
@@ -130,60 +157,122 @@
 										<input id="input_avatar" type="file" name="avatar" size="50" accept=".jpg,.JPG,.jpeg,.JPEG" />
 									</span>
 								</span>
-								<input id="name_avatar" type="text" class="form-control" readonly value=""/></div>
+								<input id="name_avatar" type="text" class="form-control" readonly value=""/>
+							</div>
 						</td>
 						<td style="width: 100px">
-							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w="",target="consolidation");'/>
+							<input name="btn-upload"
+								   id="btn-upload"
+								   class="btn btn-md btn-success"
+								   type="submit"
+								   value="アップロード"
+								   onclick='refreshAvatar(id="<?php echo $tmp_name;?>",h=400,w="",target="consolidation");'/>
 						</td>
-					</form></tr>
+						</form>
+					</tr>
 				</table>
 			</div>
 
-			<!-- Project view -->
-			<div class="row"><form action="insert_consolidation.php" method="post">
-				<table class='table table'>
+			<!-- Consolidation view -->
+			<div class="row">
+				<form action="insert_consolidation.php" method="post">
+				<table class="table table">
 					<tr style="background-color: #343399; color: #ffffff">
-						<td ><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> 統合体情報</td>
+						<td ><span class="glyphicon glyphicon-info-sign" aria-hidden="true">　統合体情報</span></td>
 						<td style="color: red"><?php echo $err; ?></td>
 					</tr>
+					<!-- Name of the consolidation-->
 					<tr>
-						<td style='width: 200px; text-align: center; vertical-align: middle'>名　　称<span style="color: red"></span></td>
-						<td><input class="form-control"  type='text' name="name"></td>
+						<td style="width: 200px; text-align: center; vertical-align: middle">名　　称</td>
+						<td><input class="form-control"  type="text" name="name"></td>
 					</tr>
+					<!-- Period of the consolidation existed -->
 					<tr>
-						<td style='text-align: center; vertical-align: middle'>時　　期</td>
-						<td><div class="row">
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">開始:</span><input class="form-control" type="text" name="bgn" id="bgn" ></div></div>
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">終了:</span><input class="form-control" type='text' name="end" id="end" ></div></div>
-						</div></td>
+						<td style="text-align: center; vertical-align: middle">時　　期</td>
+						<td>
+							<div class="row">
+								<!-- Date of birth -->
+								<div class="form-group col-lg-4">
+									<div class="input-group">
+										<span class="input-group-addon" id="basic-addon1">開始:</span>
+										<input class="form-control" type="text" name="bgn" id="bgn"/>
+									</div>
+								</div>
+								<!-- Date of death -->
+								<div class="form-group col-lg-4">
+									<div class="input-group">
+										<span class="input-group-addon" id="basic-addon1">終了:</span>
+										<input class="form-control" type="text" name="end" id="end"/>
+									</div>
+								</div>
+							</div>
+						</td>
 					</tr>
+					<!-- Explanation about the consolidation. -->
 					<tr>
-						<td style='text-align: center; vertical-align: middle'>説明記述</td><td><textarea class="form-control" style='resize: none;'rows='10' name='desc'></textarea></td>
+						<td style="text-align: center; vertical-align: middle">説明記述</td>
+						<td>
+							<textarea class="form-control" style="resize: none;"rows="10" name="desc"></textarea>
+						</td>
 					</tr>
+					
+					<!-- Spatial information about the consolidation. -->
 					<tr style="background-color: #343399; color: #ffffff">
-						<td colspan="2"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> 空間情報</td>
+						<td colspan="2">
+							<span class="glyphicon glyphicon-info-sign" aria-hidden="true"> 空間情報</span>
+						</td>
 					</tr>
+					<!-- Address or any explanation about the place -->
 					<tr>
-						<td style='width: 200px; text-align: center; vertical-align: middle'>所在地名<span style="color: red"></span></td>
-						<td><input class="form-control"  type='text' name="gnam"></td>
+						<td style="width: 200px; text-align: center; vertical-align: middle">所在地名</td>
+						<td><input class="form-control"  type="text" name="gnam"></td>
 					</tr>
+					<!-- Coordinates of the represented point for the consolidation -->
 					<tr>
-						<td style='text-align: center; vertical-align: middle'>位置座標</td>
+						<td style="text-align: center; vertical-align: middle">位置座標</td>
 						<td><div class="row">
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">緯度:</span><input class="form-control" type="text" name="lat" placeholder="DD.DDDDDD" id="lat" ></div></div>
-							<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">経度:</span><input class="form-control" type='text' name="lon" placeholder="DDD.DDDDDD" id="lon" ></div></div>
+							<!-- Latitude -->
+							<div class="form-group col-lg-4">
+								<div class="input-group">
+									<span class="input-group-addon" id="basic-addon1">緯度:</span>
+									<input class="form-control" type="text" name="lat" placeholder="DD.DDDDDD" id="lat"/>
+								</div>
+							</div>
+							<!-- Longitude -->
+							<div class="form-group col-lg-4">
+								<div class="input-group">
+									<span class="input-group-addon" id="basic-addon1">経度:</span>
+									<input class="form-control" type="text" name="lon" placeholder="DDD.DDDDDD" id="lon"/>
+								</div>
+							</div>
 						</div></td>
 					</tr>
 					
-					<tr><td style='text-align: center; vertical-align: middle'>所在範囲（WKT形式）</td><td><textarea class="form-control" style='resize: none;'rows='10' name='cur_extent'></textarea></td></tr>
-					<tr><td style='text-align: center; vertical-align: middle'>想定範囲（WKT形式）</td><td><textarea class="form-control" style='resize: none;'rows='10' name='est_extent'></textarea></td></tr>
+					<tr>
+						<td style="text-align: center; vertical-align: middle">所在範囲（WKT形式）</td>
+						<td>
+							<textarea class="form-control" style="resize: none;"rows="10" name="cur_extent"></textarea>
+						</td>
+					</tr>
+					<tr>
+						<td style="text-align: center; vertical-align: middle">想定範囲（WKT形式）</td>
+						<td>
+							<textarea class="form-control" style="resize: none;"rows="10" name="est_extent"></textarea>
+						</td>
+					</tr>
 				</table>
 				<!-- Update button -->
 				<hr />
-				<table id="submission" class="table" style="border: hidden; padding: 0px; margin: 0px"><tr><td style="text-align: right;">
-					<button class="btn btn-md btn-success" type="submit" value="registeration"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 統合体の登録</button>
-				</td></tr></table>
-				<input type="hidden" name="con_fimg" value="<?php echo $uuid;?>.jpg">
+				<table id="submission" class="table" style="border: hidden; padding: 0px; margin: 0px">
+					<tr>
+						<td style="text-align: right;">
+							<button class="btn btn-md btn-success" type="submit" value="registeration"/>
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"> 統合体の登録</span>
+							</button>
+						</td>
+					</tr>
+				</table>
+				<input type="hidden" name="con_fimg" value="<?php echo $tmp_name;?>.jpg">
 				<input type="hidden" name="prj_id" value="<?php echo $prj_id;?>">
 			</form>
 		</div>

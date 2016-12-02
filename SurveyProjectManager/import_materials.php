@@ -2,7 +2,7 @@
     $con_id = $_REQUEST["uuid"]
 ?>
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 	<head>
 		<title>SurveyProjectManager</title>
 		<meta charset="utf-8" />

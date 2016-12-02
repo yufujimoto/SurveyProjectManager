@@ -1,4 +1,5 @@
 <?php
+	// Start the session.
     session_start();
     
     // Check session status.
@@ -7,25 +8,33 @@
       exit;
     }
 	
+	// Only the administrator can access to this page.
 	if ($_SESSION["USERTYPE"] != "Administrator") {
 		header("Location: main.php");
 	}
 	
+	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
-	// Open the connection to DB
-	$err = $_GET['err'];
+	// Get parameters from post.
+	$err = $_REQUEST['err'];
 	$uuid = $_REQUEST['uuid'];
 	
-	$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	// Connect to the DB.
+	$conn = pg_connect("host=".DBHOST.
+					   " port=".DBPORT.
+					   " dbname=".DBNAME.
+					   " user=".DBUSER.
+					   " password=".DBPASS)
+			or die('Connection failed: ' . pg_last_error());
 	
 	// Find the project.
-	$prj_query = "SELECT * FROM project WHERE uuid = '" . $uuid . "'";
-    $prj_result = pg_query($dbconn, $prj_query) or die('Query failed: ' . pg_last_error());
-    while ($prj_row = pg_fetch_assoc($prj_result)) {
+	$sql_select_prj = "SELECT * FROM project WHERE uuid = '" . $uuid . "'";
+    $sql_result_prj = pg_query($conn, $sql_select_prj) or die('Query failed: ' . pg_last_error());
+    while ($prj_row = pg_fetch_assoc($sql_result_prj)) {
 		$prj_uid = $prj_row['uuid'];
         $prj_nam = $prj_row['name'];
         $prj_ttl = $prj_row['title'];
@@ -40,17 +49,17 @@
 		$prj_fpg = $prj_row['faceimage'];
     }
 	
-		// $sql_select_allmember = "SELECT M.uuid, M.avatar, M.surname, M.firstname, M.username, M.usertype FROM role INNER JOIN member as M ON role.mem_id = M.uuid WHERE prj_id != '" .$uuid. "'";
-		$sql_select_allmember = "SELECT * from member";
+	// $sql_select_mem_all = "SELECT M.uuid, M.avatar, M.surname, M.firstname, M.username, M.usertype FROM role INNER JOIN member as M ON role.mem_id = M.uuid WHERE prj_id != '" .$uuid. "'";
+	$sql_select_mem_all = "SELECT * from member";
 
-		echo $sql_select_allmember;
-		// Excute the query and get the result of query.
-		$result_select_allmember = pg_query($dbconn, $sql_select_allmember);
-		if (!$result_select_allmember) {
-			// Print the error messages and exit routine if error occors.
-			echo "An error occurred in DB query.\n";
-			exit;
-		}
+	echo $sql_select_mem_all;
+	// Excute the query and get the result of query.
+	$result_select_mem_all = pg_query($conn, $sql_select_mem_all);
+	if (!$result_select_mem_all) {
+		// Print the error messages and exit routine if error occors.
+		echo "An error occurred in DB query.\n";
+		exit;
+	}
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -109,7 +118,7 @@
 		</script>
 	</head>
 
-	<body onload="doOnLoad();">
+	<body>
 	    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 		    <div class="container">
 		      <div class="navbar-header">
@@ -131,36 +140,82 @@
 		    </div>
 	    </div>
 		
-		<!-- Main containts -->
-		<div class="container" style="margin: 0 auto; padding-top: 30px;">
-			<!-- Page Header -->
-			<div class="row"><table class='table'>
-				<thead style="text-align: center">
-					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td><h2>プロジェクト情報の編集</h2></td></tr>
-				</thead>
-			</table></div>
+		<!-- Control Menu -->
+		<div class="container" style="padding-top: 30px">
+			<div id="main" class="row">
+				<table id="operation" class="table" style="padding: 0px; margin: 0px">
+					<thead style="text-align: center">
+						<!-- Main Label of CSV uploader -->
+						<tr>
+							<td>
+								<h2>プロジェクトの編集</h2>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: left">
+									<button id="btn_add_mat"
+											name="btn_add_mat"
+											class="btn btn-sm btn-default"
+											type="submit" value="add_material"
+											onclick="backToProject()">
+										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> プロジェクトの管理に戻る</span>
+									</button>
+							</td>
+						</tr>
+						<!-- Display Errors -->
+						<tr>
+							<td>
+								<p style="color: red; text-align: left"><?php echo $err; ?></p>
+							</td>
+						</tr>
+					</thead>
+				</table>
+			</div>
 			
 			<!-- Avatar -->
 			<div class="row">
 				<table class='table table' style="border: hidden">
 					<!-- iFrame for showing Avatar -->
-					<tr style="text-align: center"><td colspan="2">
-							<iframe name="iframe_avatar" style="width: 610px; height: 410px; border: hidden; border-color: #999999;" src="avatar_uploaded.php?width=600&height=400&target=project&img_id=<?php echo $uuid; ?>"></iframe>
-					</td></tr>
-					<tr><form id="form_avatar" method="post" enctype="multipart/form-data">
-						<td style="width: auto">
-							<div class="input-group">
-								<span class="input-group-btn">
-									<span class="btn btn-primary btn-file">Browse&hellip;
-										<input id="input_avatar" type="file" name="avatar" size="50" accept=".jpg,.JPG,.jpeg,.JPEG" />
-									</span>
-								</span>
-								<input id="name_avatar" type="text" class="form-control" readonly value=""/></div></td>
-						<td style="width: 100px">
-							<input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="アップロード" onclick="refreshAvatar();"/>
+					<tr style="text-align: center">
+						<td colspan="2">
+							<iframe id="iframe_avatar" 
+									name="iframe_avatar"
+									style="width: 610px; height: 410px; border: hidden; border-color: #999999;"
+									src="avatar_uploaded.php?width=600&height=400&target=project&img_id=<?php echo $uuid; ?>">
+							</iframe>
 						</td>
-					</form></tr>
+					</tr>
+					<tr>
+						<form id="form_avatar" method="post" enctype="multipart/form-data">
+							<td style="width: auto">
+								<div class="input-group">
+									<span class="input-group-btn">
+										<span class="btn btn-primary btn-file">
+											Browse&hellip;
+											<input id="input_avatar"
+												   name="avatar"　
+												   type="file"
+												   size="50"
+												   accept=".jpg,.JPG,.jpeg,.JPEG" />
+										</span>
+									</span>
+									<input id="name_avatar" 
+										   name="name_avatar"
+										   class="form-control" 
+										   type="text"
+										   readonly value=""/>
+								</div>
+							</td>
+							<td style="width: 100px">
+								<input id="btn-upload" 
+									   name="btn-upload"
+									   class="btn btn-md btn-success"
+									   type="submit"
+									   value="アップロード"
+									   onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w=600,target="project");'/>
+							</td>
+						</form>
+					</tr>
 				</table>
 			</div>
 			
@@ -169,77 +224,144 @@
 				<form action="update_project.php" method="post">
 					<!-- Information about a user who registered this project -->
 					<table class='table table'>
+						<!------------------------
+						   Project Infrormation
+						------------------------->
 						<tr style="background-color: #343399; color: #ffffff">
-							<td ><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 登録者の情報</td>
+							<td>
+								<span class="glyphicon glyphicon-user" aria-hidden="true"> 登録者の情報</span>
+							</td>
 							<td style="color: red"><?php echo $err; ?></td>
 						</tr>
 						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>登録者<span style="color: red"></span></td>
+							<td style='width: 200px; text-align: center; vertical-align: middle'>登録者</td>
 							<td><?php echo $prj_cby; ?></td>
 						</tr>
 						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>登録日時<span style="color: red"></span></td>
+							<td style='width: 200px; text-align: center; vertical-align: middle'>登録日時</td>
 							<td><?php echo $prj_cdt; ?></td>
 						</tr>
 					</table>
 					
 					<!-- Generic Information about the project -->
 					<table class='table table'>
+						<!------------------------
+						   Project Infrormation
+						------------------------->
 						<tr style="background-color: #343399; color: #ffffff">
-							<td colspan="2"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> プロジェクト情報</td>
+							<td colspan="2">
+								<span class="glyphicon glyphicon-info-sign" aria-hidden="true"> プロジェクト情報</span>
+							</td>
 						</tr>
 						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>課題名<span style="color: red"></span></td>
-							<td><input class="form-control"  type='text' name="title" value="<?php echo $prj_ttl; ?>"></td>
+							<td style='width: 200px; text-align: center; vertical-align: middle'>課題名</td>
+							<td>
+								<input class="form-control"  type='text' name="title" value="<?php echo $prj_ttl; ?>">
+							</td>
 						</tr>
 						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>プロジェクト名<span style="color: red"></span></td>
-							<td><input class="form-control"  type='text' name="name" value="<?php echo $prj_nam; ?>"></td>
+							<td style='width: 200px; text-align: center; vertical-align: middle'>プロジェクト名</td>
+							<td>
+								<input class="form-control"  type='text' name="name" value="<?php echo $prj_nam; ?>">
+							</td>
 						</tr>
 						<tr>
 							<td style='text-align: center; vertical-align: middle'>期間と次数</td>
-							<td><div class="row">
-								<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">開始:</span>
-									<input class="form-control" type="text" name="date_from" placeholder="YYYY-MM-DD" id="date_from" onclick="setSens('date_to', 'max');" readonly="true">
-								</div>
-								</div>
-								<div class="form-group col-lg-4"><div class="input-group"><span class="input-group-addon" id="basic-addon1">終了:</span>
-									<input class="form-control" type='text' name="date_to" placeholder="YYYY-MM-DD" id="date_to" onclick="setSens('date_from', 'min');" readonly="true"></div>
-								</div>
-								<div class="form-group col-lg-4"><div class="input-group">
-									<span class="input-group-addon" id="basic-addon1">調査次数:</span>
-									<select class="combobox input-large form-control" name="phase" style='text-align: center'>
-										<option value="<?php echo $prj_phs; ?>"><?php echo $prj_phs; ?></option>
-										<?php
-											for ($i = 1; $i <= 20; $i++) {
-												echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
-											}
-										?>
-									</select></div>
-								</div>
+							<td>
+								<div class="row">
+									<div class="form-group col-lg-4">
+										<div class="input-group">
+											<span class="input-group-addon" id="basic-addon1">開始:</span>
+											<input id="date_from"　
+												   name="date_from"
+												   class="form-control"
+												   type="text"
+												   placeholder="YYYY-MM-DD"
+												   value="<?php echo $prj_bgn;?>" 
+												   onclick="setSens('date_to', 'max');"
+												   readonly="true">
+										</div>
+									</div>
+									<div class="form-group col-lg-4">
+										<div class="input-group">
+											<span class="input-group-addon" id="basic-addon1">終了:</span>
+											<input id="date_to"　
+												   name="date_to" 
+												   class="form-control"
+												   type="text"
+												   placeholder="YYYY-MM-DD"
+												   value="<?php echo $prj_end;?>" 
+												   onclick="setSens('date_from', 'min');"
+												   readonly="true"></div>
+										</div>
+									<div class="form-group col-lg-4">
+										<div class="input-group">
+											<span class="input-group-addon" id="basic-addon1">調査次数:</span>
+											<select class="combobox input-large form-control" name="phase" style='text-align: center'>
+												<option value="<?php echo $prj_phs; ?>"><?php echo $prj_phs; ?></option>
+												<?php
+													for ($i = 1; $i <= 20; $i++) {
+														echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
+													}
+												?>
+											</select>
+										</div>
+									</div>
 							</div></td>
 						</tr>
 						
-						<tr><td style='text-align: center; vertical-align: middle'>プロジェクト紹介</td><td><textarea class="form-control" style='resize: none;'rows='10' name='intro'><?php echo $prj_int; ?></textarea></td></tr>
-						<tr><td style='text-align: center; vertical-align: middle'>調査原因</td><td><textarea class="form-control" style='resize: none;'rows='10' name='cause'><?php echo $prj_cas; ?></textarea></td></tr>
-						<tr><td style='text-align: center; vertical-align: middle'>特記事項</td><td><textarea class="form-control" style='resize: none;'rows='10' name='desc'><?php echo $prj_dsc; ?></textarea></td></tr>
+						<tr>
+							<td style='text-align: center; vertical-align: middle'>プロジェクト紹介</td>
+							<td>
+								<textarea class="form-control" style='resize: none;'rows='10' name='intro'><?php echo str_replace("<br />","",$prj_int); ?></textarea>
+							</td>
+						</tr>
+						<tr>
+							<td style='text-align: center; vertical-align: middle'>調査原因</td>
+							<td>
+								<textarea class="form-control" style='resize: none;'rows='10' name='cause'><?php echo str_replace("<br />","",$prj_cas); ?></textarea>
+							</td>
+						</tr>
+						<tr>
+							<td style='text-align: center; vertical-align: middle'>特記事項</td>
+							<td>
+								<textarea class="form-control" style='resize: none;'rows='10' name='desc'><?php echo str_replace("<br />","",$prj_dsc); ?></textarea>
+							</td>
+						</tr>
 						
 						<!-- Update button -->
 						<tr style="border: hidden; padding: 0px; margin: 0px; text-align: right;">
 							<td colspan="2">
-								<button class="btn btn-md btn-success" type="submit" value="registeration"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> プロジェクトの更新</button>
+								<button class="btn btn-md btn-success" type="submit" value="registeration">
+									<span class="glyphicon glyphicon-refresh" aria-hidden="true"> プロジェクトの更新</span>
+								</button>
 							</td>
 						</tr>
 					</table>
 				</form>
-					
+				
 				<!-- Information about a user who registered this project -->
 				<table class='table table'>
 					<tr style="background-color: #343399; color: #ffffff">
-						<td colspan="7"><span class="glyphicon glyphicon-th" aria-hidden="true"></span> 登録者の情報</td>
+						<td colspan="7">
+							<span class="glyphicon glyphicon-th" aria-hidden="true"> 調査報告書の情報</span>
+						</td>
 						<td style="text-align: right;">
-							<button class="btn btn-md btn-success" type="submit" id="addNew">新規メンバーの追加</button>
-							<button class="btn btn-md btn-danger" type="submit" id="deleteOne">既存メンバーの削除</button>
+							<button class="btn btn-md btn-success" type="submit" id="btn_add_prjMem">報告書の追加</button>
+							<button class="btn btn-md btn-danger" type="submit" id="btn_del_prjMem">報告書の削除</button>
+						</td>
+					</tr>
+				</table>
+				
+				<!-- Information about a user who registered this project -->
+				<table class='table table'>
+					<tr style="background-color: #343399; color: #ffffff">
+						<td colspan="7">
+							<span class="glyphicon glyphicon-th" aria-hidden="true"> 登録者の情報</span>
+						</td>
+						<td style="text-align: right;">
+							<button class="btn btn-md btn-success" type="submit" id="btn_add_prj_mem">新規メンバーの追加</button>
+							<button class="btn btn-md btn-danger" type="submit" id="btn_del_prj_mem">既存メンバーの削除</button>
 						</td>
 					</tr>
 					<!-- Trigger/Open The Modal -->
@@ -248,9 +370,9 @@
 						<?php
 							// For each row, HTML list is created and showed on browser.
 							// find the roles in the project.
-							// echo $sql_select_allmember;
+							// echo $sql_select_mem_all;
 							$rol_query = "SELECT * FROM role WHERE prj_id='".$prj_uid."'";
-							$rol_result = pg_query($dbconn, $rol_query);
+							$rol_result = pg_query($conn, $rol_query);
 							
 							// Fetch rows of projects. 
 							$rows_role = pg_fetch_all($rol_result);
@@ -265,7 +387,7 @@
 									
 									// Find the member.
 									$mem_query = "SELECT * FROM member WHERE uuid = '" . $mem_uid . "'";
-									$mem_result = pg_query($dbconn, $mem_query) or die('Query failed: ' . pg_last_error());
+									$mem_result = pg_query($conn, $mem_query) or die('Query failed: ' . pg_last_error());
 									while ($mem_row = pg_fetch_assoc($mem_result)) {
 										$mem_ava = $mem_row['avatar'];
 										$mem_snm = $mem_row['surname'];
@@ -294,7 +416,7 @@
 		</div>
 		
 		<!-- The Modal -->
-		<div id="myModal" class="modal">
+		<div id="modal_prj_mem" class="modal">
 			<!-- Modal content -->
 			<div class="modal-content" style="width: 800px">
 				<span class="close">×</span>
@@ -307,7 +429,7 @@
 						</thead>
 						<?php
 							// Fetch rows of projects. 
-							$rows_allmember = pg_fetch_all($result_select_allmember);
+							$rows_allmember = pg_fetch_all($result_select_mem_all);
 							foreach ($rows_allmember as $row_allmember){
 								$allmem_uuid = $row_allmember['uuid'];
 								$allmem_ava = $row_allmember['avatar'];
@@ -332,6 +454,9 @@
 								echo '<script type="text/javascript">newDate("from_'.$allmem_uuid.'");</script>';
 								echo '<script type="text/javascript">newDate("to_'.$allmem_uuid.'");</script>';
 							}
+							
+							// close the connection to DB.
+							pg_close($conn);
 						?>
 					</table>
 				</form>
@@ -340,28 +465,28 @@
 		
 		<script>
 			// Get the modal
-			var modal = document.getElementById('myModal');
+			var mdl_prj_mem = document.getElementById('modal_prj_mem');
 			
 			// Get the button that opens the modal
-			var btn_add = document.getElementById("addNew");
+			var btn_add_prj_mem = document.getElementById("btn_add_prj_mem");
 			
 			// Get the <span> element that closes the modal
 			var span = document.getElementsByClassName("close")[0];
 			
 			// When the user clicks the button, open the modal
-			btn_add.onclick = function() {
-				modal.style.display = "block";
+			btn_add_prj_mem.onclick = function() {
+				mdl_prj_mem.style.display = "block";
 			};
 			
 			// When the user clicks on <span> (x), close the modal
 			span.onclick = function() {
-				modal.style.display = "none";
+				mdl_prj_mem.style.display = "none";
 			};
 			
 			// When the user clicks anywhere outside of the modal, close it
 			window.onclick = function(event) {
-				if (event.target == modal) {
-					modal.style.display = "none";
+				if (event.target == mdl_prj_mem) {
+					mdl_prj_mem.style.display = "none";
 				}
 			};
 		</script>

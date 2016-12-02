@@ -17,13 +17,12 @@
 		echo "An error occurred in DB connection.\n";
 		exit;
 	}
-	$prj_uuid = $_REQUEST["uuid"];
-	$sql_sel_prj = "SELECT faceimage FROM project WHERE uuid='" .$prj_uuid."'" ;
-	$res_sel_prj = pg_query($sql_sel_prj);	
-	$ret_sel_prj = pg_fetch_result($res_sel_prj, "faceimage");
-	
+	$mat_uuid = $_REQUEST["uuid"];
+	$sql_sel_prj = "SELECT thumbnail FROM digitized_image WHERE mat_id='" .$mat_uuid."'" ;
+	$res_sel_prj = pg_query($sql_sel_prj);
+	$ret_sel_prj = pg_fetch_row($res_sel_prj, "thumbnail");
 	header("Content-type: image/jpeg");
-	echo pg_unescape_bytea($ret_sel_prj);
+	echo pg_unescape_bytea($ret_sel_prj[0]);
 	
 	// close the connection to DB.
 	pg_close($conn);

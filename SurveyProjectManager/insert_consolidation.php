@@ -11,16 +11,16 @@
     require "lib/config.php";
     
     // Connect to the Database.
-    $dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+    $conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
     
-    if (!$_POST['name']) {
+    if (!$_REQUEST['name']) {
         $err = "統合体名が空白です。";
         header("Location: add_project.php?err=".$err);
         exit ;
     }
     
     // Get avatar.
-    $prj_faceimage = $_POST['con_fimg'];
+    $prj_faceimage = $_REQUEST['con_fimg'];
     if ($prj_faceimage != "") {
         if (file_exists("uploads/".$prj_faceimage)) {
             $filename = "uploads/thumbnail_".$prj_faceimage;
@@ -44,17 +44,17 @@
     }
         
     $uuid = "'".GUIDv4()."'";
-    $prj_id = "'".$_POST['prj_id']."'";
-    $name = "'".$_POST['name']."'";
+    $prj_id = "'".$_REQUEST['prj_id']."'";
+    $name = "'".$_REQUEST['name']."'";
     $faceimage = $escaped;
-    $gnam = str_replace("''", "NULL", "'".$_POST['gnam']."'");
-    $extnt = str_replace("''", "NULL", "'".$_POST['cur_extent']."'");
-    $lat = str_replace("''", "NULL", "'".$_POST['lat']."'");
-    $lon = str_replace("''", "NULL", "'".$_POST['lon']."'");
-    $esta = str_replace("''", "NULL", "'".$_POST['est_extent']."'");
-    $bgn = str_replace("''", "NULL", "'".$_POST['bgn']."'");
-    $end = str_replace("''", "NULL", "'".$_POST['end']."'");
-    $desc = str_replace("''", "NULL", "'".$_POST['desc']."'");
+    $gnam = str_replace("''", "NULL", "'".$_REQUEST['gnam']."'");
+    $extnt = str_replace("''", "NULL", "'".$_REQUEST['cur_extent']."'");
+    $lat = str_replace("''", "NULL", "'".$_REQUEST['lat']."'");
+    $lon = str_replace("''", "NULL", "'".$_REQUEST['lon']."'");
+    $esta = str_replace("''", "NULL", "'".$_REQUEST['est_extent']."'");
+    $bgn = str_replace("''", "NULL", "'".$_REQUEST['bgn']."'");
+    $end = str_replace("''", "NULL", "'".$_REQUEST['end']."'");
+    $desc = str_replace("''", "NULL", "'".$_REQUEST['desc']."'");
     
     if ($extnt!="NULL") {
         $extent = "ST_MakePolygon(ST_GeomFromText('".$extnt."'),".SRID.")";
@@ -101,24 +101,32 @@
                             $end,
                             $desc
                         )";
-        $sql_result = pg_query($dbconn, $sql_inssert);
+        $sql_result = pg_query($conn, $sql_inssert);
         
         // Check the result.
         if (!$sql_result) {
             // Get the error message.
-            $err = pg_last_error($dbconn);
+            $err = pg_last_error($conn);
+            
+            // close the connection to DB.
+            pg_close($conn);
             
             // Back to projects page.
-            header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
+            header("Location: consolidation.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
         }
     } catch (Exception $err) {
         // Get the error message.
         $err->getMessage();
         
+        // close the connection to DB.
+        pg_close($conn);
+        
         // Back to projects page.
-        header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
+        header("Location: consolidation.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
     }
+    // close the connection to DB.
+	pg_close($conn);
     
     // Back to projects page without error messages.
-    header("Location: consolidation.php?uuid=".$_POST['prj_id']."&err=".$err);
+    header("Location: consolidation.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
 ?>

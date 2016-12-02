@@ -8,6 +8,11 @@
       exit;
     }
 	
+	// Only the administrator can access to this page.
+	if ($_SESSION["USERTYPE"] != "Administrator") {
+		header("Location: main.php");
+	}
+	
 	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
@@ -16,9 +21,7 @@
 	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
-	$uuid = uniqid($_SESSION["USERNAME"]."_");
-	$img = "uploads/".$uuid.".jpg";
-	$tmg = "uploads/thumbnail_".$uuid.".jpg";
+	$prj_id = $_REQUEST["uuid"];
 ?>
 <!DOCTYPE html>
 <html lang="ja">

@@ -1,4 +1,5 @@
 <?php
+	// Start the session.
     session_start();
     
     // Check session status.
@@ -7,31 +8,72 @@
       exit;
     }
 	
+	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
+	// Get parameters from post.
+	$err = $_REQUEST["err"];
 	$prj_id= $_REQUEST['uuid'];
+	
+	// Connect to the DB.
+	$conn = pg_connect(
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS)
+			or die('Connection failed: ' . pg_last_error());
+	
+	// Get a list of registered project.
+	// Create a SQL query string.
+	$sql_select_con = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
+	
+	// Excute the query and get the result of query.
+	$result_select_con = pg_query($conn, $sql_select_con);
+	if (!$result_select_con) {
+		// Print the error messages and exit routine if error occors.
+		echo "An error occurred in DB query.\n";
+		exit;
+	}
+	
+	// Fetch rows of projects. 
+	$rows_consolidation = pg_fetch_all($result_select_con);
+	$row_cnt = 0 + intval(pg_num_rows($result_select_con));
 ?>
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-	    <meta charset="utf-8">
-	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-	    <meta name="viewport" content="width=device-width, initial-scale=1">
-	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	    <meta http-equiv="Content-Script-Type" content="text/javascript">
-	    <meta http-equiv="Content-Style-Type" content="text/css">
-	    <meta name="description" content="">
-	    <meta name="Yu Fujimoto" content="">
-	    <link rel="icon" href="../favicon.ico">
-	    <title>プロジェクトの管理</title>
-	    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	    <link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
-	    <link href="../theme.css" rel="stylesheet">
-    </head>
+	<head>
+		<title>Material</title>
 		
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta name="Yu Fujimoto" content="" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../theme.css" rel="stylesheet" />
+		
+		<!-- Import external scripts for Bootstrap CSS -->
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="../bootstrap/js/bootstrap.js"></script>
+		<script src="../bootstrap/js/bootstrap.min.js"></script>
+		
+		<!-- Import external scripts for generating image -->
+		<script type="text/javascript" src="lib/refreshImage.js"></script>
+		
+		<!-- Import external scripts for calendar control -->
+		<link rel="stylesheet" type="text/css" href="lib/calendar/codebase/dhtmlxcalendar.css"/>
+		<script src="lib/calendar/codebase/dhtmlxcalendar.js"></script>
+		<script type="text/javascript" src="lib/calendar.js"></script>
+	</head>
+	
 	<body>
 	    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 		    <div class="container">
@@ -52,158 +94,185 @@
 			    </ul>
 		      </div><!--/.nav-collapse -->
 		    </div>
-	    </div>
+		</div>
 		
-		<!-- Main containts -->
-		<div id="container" class="container" style="padding-top: 30px">
-			<!-- Page Header -->
-			<div class="row"><table class='table'>
-				<thead style="text-align: center">
-					<!-- Main Label of CSV uploader -->
-					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h2>統合体の管理</h2></td></tr>
-					<!-- Operating menues -->
-					<tr><td colspan=7 style="text-align: left">
-						<button class="btn btn-sm btn-success" type="submit" value="add_consolidation" onclick="addNewConsolidation();"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 新規統合体の追加</button>
-						<!-- <button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="importConsolidationByCsv();"><span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 統合体のインポート</button> -->
-						<!-- <button class="btn btn-sm btn-success" type="submit" value="view_selection" onclick="ExportConsolidationByCsv();"><span class="glyphicon glyphicon-download" aria-hidden="true"></span> 統合体のエクスポート</button> -->
-						<button id="del_row" class="btn btn-sm btn-danger" type="submit" value="delete" onclick="deleteSelectedConsolidation();"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 選択した統合体の削除</button>
-					</td></tr>
-				</thead>
-			</table></div>
+		<!-- Control Menu -->
+		<div class="container" style="padding-top: 30px">
+			<div id="main" class="row">
+				<table id="operation" class="table" style="padding: 0px; margin: 0px">
+					<thead style="text-align: center">
+						<!-- Main Label of CSV uploader -->
+						<tr>
+							<td>
+								<h2>統合体の管理</h2>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: left">
+									<button id="btn_add_mat"
+											name="btn_add_mat"
+											class="btn btn-sm btn-default"
+											type="submit" value="add_material"
+											onclick="backToMyPage()">
+										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> マイページに戻る</span>
+									</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan=7 style="text-align: left">
+								<div class="btn-group">
+									<button id="btn_add_mat"
+											name="btn_add_mat"
+											class="btn btn-sm btn-success"
+											type="submit" value="add_material"
+											onclick="addNewConsolidation('<?php echo $prj_id; ?>');">
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新規統合体の追加</span>
+									</button>
+									<!--
+									<button id="btn_imp_mat"
+											name="btn_imp_mat"
+											class="btn btn-sm btn-success"
+											type="submit" 
+											onclick="importMaterials();">
+										<span class="glyphicon glyphicon-upload" aria-hidden="true"> 対象資料のインポート</span>
+									</button>
+									<button id="btn_exp_mat"
+											name="btn_exp_mat"
+											class="btn btn-sm btn-success"
+											type="submit" 
+											onclick="ExportConsolidationByCsv();">
+										<span class="glyphicon glyphicon-download" aria-hidden="true"> 対象資料のエクスポート</span>
+									</button>
+									-->
+								</div>
+							</td>
+						</tr>
+						<!-- Display Errors -->
+						<tr>
+							<td>
+								<p style="color: red; text-align: left"><?php echo $err; ?></p>
+							</td>
+						</tr>
+					</thead>
+				</table>
+			</div>
 			
-			<?php
-				// Connect to the DB.
-				$dbconn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
-				
-				// Get a list of registered project.
-				// Create a SQL query string.
-				$sql_select_consolidation = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
-				
-				// Excute the query and get the result of query.
-				$result_select_consolidation = pg_query($dbconn, $sql_select_consolidation);
-				if (!$result_select_consolidation) {
-					// Print the error messages and exit routine if error occors.
-					echo "An error occurred in DB query.\n";
-					exit;
-				}
-				
-				// Fetch rows of projects. 
-				$rows_consolidation = pg_fetch_all($result_select_consolidation);
-				$row_count = 0 + intval(pg_num_rows($result_select_consolidation));
-				
-				// Create section Label and show the total number of the registered project
-				echo "<h3>" . $row_count ."件の統合体が登録されています。</h3>\n";
-			?>
-			<!-- Members list -->
+			<!-- Contents -->
+			<div id="contents" class="row">
+				<h3><?php echo $row_cnt?>件の統合体が登録されています。</h3>
+			</div>
+			
+			<!-- Consolidation list -->
 			<div class="row">
-				<table id="consolidation" class='table table-striped'>
-				<thead style="text-align: center">
-					<tr><td colspan="3" style="width: 200px">名称</td><td>場所</td><td style="width: 100px">開始時期</td><td style="width: 100px">終了時期</td><td style="width: 300px">備考</td><td>操作パネル</td></tr>
-				</thead>
-				<?php
-					echo "<form id='selection'>\n";
-					foreach ($rows_consolidation as $row){
-						$con_uuid = $row['uuid'];
-						$con_nam = $row['name'];
-						$con_fim = $row['faceimage'];
-						$con_gnm = $row['geographic_name'];
-						$con_beg = $row['estimated_period_beginning'];
-						$con_end = $row['estimated_period_ending'];
-						$con_dsc = $row['descriptions'];
-						
-						echo "\t\t\t\t\t<tr style='text-align: center;'><td style='vertical-align: middle;'><input type='radio' name='member' value='" .$con_uuid. "' /></td>";
-						if($con_fim != ""){
-							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$con_uuid. "'><img height=96 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/></a></td>";
-						} else {
-							echo "<td style='vertical-align: middle;'><a href='project_consolidations_view.php?uuid=" .$con_uuid. "'><img height=96 src='images/noimage.jpg' alt='img'/></a></td>";
+				<table id="consolidation" class="table table-striped">
+					<?php
+						// For each row, HTML list is created and showed on browser.
+						foreach ($rows_consolidation as $row){
+							// Get a value in each field.
+							$con_uuid = $row['uuid'];
+							$con_nam = $row['name'];
+							$con_fim = $row['faceimage'];
+							$con_gnm = $row['geographic_name'];
+							$con_beg = $row['estimated_period_beginning'];
+							$con_end = $row['estimated_period_ending'];
+							$con_dsc = $row['descriptions'];
+							
+							// Make HTML tag elements using aquired field values.
+							
+							// -------------------------------
+							// Header row
+							echo "\t\t\t\t\t<tr style='text-align: left;'>\n";
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle;' colspan='2'><h3>". $con_nam. "</h3></td>";
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle; text-align:right'>";
+							
+							// Control menue
+							echo "\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>";
+							// Create a button for operation.
+							if ($_SESSION["USERTYPE"] == "Administrator") {
+								// Create a button for deleting this consolidation.
+								// This operation can be conducted only by Administrators.
+								echo "\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+								echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+								echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
+								echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+								echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteConsolidation('".$prj_id."','".$con_uuid."');>\n";
+								echo "\t\t\t\t\t\t\t\t\t<span>統合体の削除</span>\n";
+								echo "\t\t\t\t\t\t\t\t</button>\n";
+							}
+							// Create a button for moving to consolidation page.
+							echo "\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToEditConsolidation('".$con_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t<span>統合体の編集</span>\n";
+							echo "\t\t\t\t\t\t\t\t</button>\n";
+							
+							// Create a button for moving to material list page.
+							echo "\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToMaterials('".$prj_id."','".$con_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t<span>資料細目の編集</span>\n";
+							echo "\t\t\t\t\t\t\t\t</button>\n";
+							echo "\t\t\t\t\t\t\t\t</div>";
+							
+							// -------------------------------
+							// Contents row
+							echo "\t\t\t\t\t<tr style='text-align: center;'>\n";
+							// Create a thumbnail image container.
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
+							if($con_fim != ""){
+								echo "\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$con_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t\t<img height=200 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/>\n";
+								echo "\t\t\t\t\t\t\t</a>\n";
+							} else {
+								echo "\t\t\t\t\t\t\t<<a href='project_consolidations_view.php?uuid=" .$con_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t\t<img height=200 src='images/noimage.jpg' alt='img'/>\n";
+								echo "\t\t\t\t\t\t\t</a>\n";
+							}
+							echo "\t\t\t\t\t\t</td>\n";
+							
+							// Create a informaion box.
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle; text-align: left'>\n";
+							echo "\t\t\t\t\t\t\t<ul>";
+							echo "\t\t\t\t\t\t\t\t<li>所　在：". $con_gnm. "</li>\n";
+							echo "\t\t\t\t\t\t\t\t<li>時　代：". $con_beg. "〜".$con_end."</li\n>";
+							echo "\t\t\t\t\t\t\t\t<li>概　要：<p>". $con_dsc. "</p></li\n>";
+							echo "\t\t\t\t\t\t\t</ul>";
+							echo "\t\t\t\t\t\t</td><td></td>\n";
 						}
-						echo "<td style='vertical-align: middle;'>". $con_nam. "</td>";
-						echo "<td style='vertical-align: middle;'>". $con_gnm. "</td>";
-						echo "<td style='vertical-align: middle;'>". $con_beg. "</td>";
-						echo "<td style='vertical-align: middle;'>". $con_end. "</td>";
-						echo "<td style='text-align:left; vertical-align: middle;'>". $con_dsc. "</td>";
-						echo "<td style='vertical-align: top;'>\n";
-						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px; style="background-color: green" onclick=moveToEditConsolidation("'.$con_uuid.'");>統合体の編集</a><br />';
-						echo '<a class="btn btn-primary" style="cursor: pointer; width: 150px; style="background-color: green" onclick=moveToMaterials("'.$con_uuid.'");>資料細目の編集</a>'."</td></tr>\n";
-					}
-					echo "\t\t\t\t</form>\n";
-					
-					// Close the connection to the database.
-					pg_close($dbconn);
-				;?>
-			</table></div>
+						// Close the connection to the database.
+						pg_close($conn);
+					;?>
+				</table>
+			</div>
 		</div>
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
-			function addNewConsolidation() {
-				window.location.href = "add_consolidation.php?uuid=<?php echo $prj_id; ?>";
+			function backToMyPage(uuid) {
+				window.location.href = "main.php?uuid=" + uuid;
 				return false;
 			}
 			
-			function importConsolidationByCsv() {
-				window.location.href = "project_consolidations_add_csv.php";
-				
+			function addNewConsolidation(uuid) {
+				window.location.href = "add_consolidation.php?uuid=" + uuid;
 				return false;
 			}
 			
-			function ExportConsolidationByCsv() {
-				window.location.href = "project_consolidations_export_csv.php";
+			function moveToMaterials(prj_id, con_id){
+				window.location.href = "material.php?uuid=" + con_id + "&prj_id=" + prj_id;
 				return false;
 			}
 			
-			function moveToMaterials(){
-				window.location.href = "material.php?uuid=<?php echo $con_uuid; ?>";
-				return false;
-			}
-			
-			function deleteSelectedConsolidation() {
-				var table=document.getElementById("consolidation");
-				var selection = document.getElementById('selection');
-				var rowCount=table.rows.length;
-				
-				if (rowCount == 2) {
-					alert("Cannot delete this member!! Number of member in a project should be more than one member!!");
-				} else {
-					try{
-						for (var i = 0, length = selection.length; i < length; i++) {
-							var checked = selection[i].checked;
-							
-							if (checked) {
-								// Get a project id of the selected item.
-								prj_id = "<?php echo $prj_id;?>";
-								con_uuid = selection[i].value;
-								
-								// Get the selected row and delete the row. 
-								table.deleteRow(i+1);
-								
-								// Send the member id to the PHP script to drop selected project from DB.
-								window.location.href = "delete_consolidation.php?uuid=" + con_uuid + "&prj_id=" + prj_id;
-								
-								// only one radio can be logically checked, don't check the rest
-								break;
-							}
-						}
-					} catch(e){ alert(e); }
+			function deleteConsolidation(prj_id, con_id) {
+				var diag_del_con = confirm("この統合体を削除しますか？");
+				if (diag_del_con === true) {
+					// Send the member id to the PHP script to drop selected project from DB.
+					window.location.href = "delete_consolidation.php?uuid=" + con_id + "&prj_id=" + prj_id;
 				}
-			}
-			
-			function handleSelectedConsolidation() {
-				var selection = document.getElementById('selection');
-				
-				try{
-					for (var i = 0, length = selection.length; i < length; i++) {
-						var checked = selection[i].checked;
-						
-						if (checked) {
-							// Get a project id of the selected item.
-							con_uuid = selection[i].value;
-							
-							// Send the project id to the PHP script to drop selected project from DB.
-							return con_uuid;
-						}
-					}
-				} catch(e){ alert(e); }
 			}
 		</script>
     </body>

@@ -13,15 +13,15 @@
 	</head>
 	<body style="margin: 0 auto;">
 	<?php
-		$desired_height = $_GET["height"];
-		$desired_width = $_GET["width"];
-		$trgt = str_replace("'", "", $_GET['target']);
-		$imgid = $_GET['img_id'];
+		$desired_height = $_REQUEST["height"];
+		$desired_width = $_REQUEST["width"];
+		$trgt = str_replace("'", "", $_REQUEST['target']);
+		$imgid = $_REQUEST['img_id'];
 				
 		// Check the validity of the uploaded file.
 		if (is_uploaded_file($_FILES["avatar"]["tmp_name"])) {
 			// New filename for uploaded file.
-			$uploadedfile = "uploads/".$_GET["id"].".jpg";
+			$uploadedfile = "uploads/".$_REQUEST["id"].".jpg";
 			
 			// Move the file to upload directory.
 			if (move_uploaded_file($_FILES["avatar"]["tmp_name"], $uploadedfile)) {
@@ -29,7 +29,7 @@
 				chmod($uploadedfile, 0777);
 				// Create a image stream of the given file.
 				$source_image = imagecreatefromjpeg($uploadedfile);
-				$destination_image = "uploads/thumbnail_".$_GET["id"].".jpg";
+				$destination_image = "uploads/thumbnail_".$_REQUEST["id"].".jpg";
 				
 				// Get the file size of the image.
 				$width = imagesx($source_image);
@@ -89,6 +89,8 @@
 				echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
 			}
 		}
+		// close the connection to DB.
+		pg_close($conn);
 	?>
 	</body>
 </html>
