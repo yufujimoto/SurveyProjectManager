@@ -30,9 +30,9 @@
 			
 			if (!empty($conn)) {				
 				// Check the number of user
-				$sql_select_mem_all = "SELECT * FROM member";
-				$sql_result_mem_all = pg_fetch_all($sql_select_mem_all);
-				$row_cnt = 0 + intval(pg_num_rows($sql_result_mem_all));
+				$sql_sel_mem_all = "SELECT * FROM member";
+				$sql_res_mem_all = pg_fetch_all($sql_sel_mem_all);
+				$row_cnt = 0 + intval(pg_num_rows($sql_res_mem_all));
 				
 				// Move to user registration page if there is no members.
 				//　Generate the error message.
@@ -42,9 +42,9 @@
 				}
 				
 				// Find the login user.
-				$sql_select_mem = "SELECT * FROM member WHERE username = '" . $username . "'";
-				$sql_result_mem = pg_query($conn, $sql_select_mem) or die('Query failed: ' . pg_last_error());
-				while ($row = pg_fetch_assoc($sql_result_mem)) {
+				$sql_sel_mem = "SELECT * FROM member WHERE username = '" . $username . "'";
+				$sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
+				while ($row = pg_fetch_assoc($sql_res_mem)) {
 					$password = $row['password'];
 					$username = $row['username'];
 					$usertype = $row['usertype'];

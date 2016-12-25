@@ -13,8 +13,8 @@ def getExifData(filename):
             if decoded == "ExifVersion": ret[decoded] = "%s.%s.%s.%s" %(value[0], value[1], value[2], value[3])
             elif decoded == "ExifImageWidth": ret[decoded] = int(value)
             elif decoded == "ExifImageHeight": ret[decoded] = int(value)
-            elif decoded == "XResolution": ret[decoded] = float(value[0])/float(value[1])
-            elif decoded == "YResolution": ret[decoded] = float(value[0])/float(value[1])
+            elif decoded == "XResolution": ret[decoded] = int(float(value[0])/float(value[1]))
+            elif decoded == "YResolution": ret[decoded] = int(float(value[0])/float(value[1]))
             elif decoded == "ResolutionUnit": ret[decoded] = getResolutionUnit(int(value))
             elif decoded == "ColorSpace": ret[decoded] = getColorSpace(int(value))
             elif decoded == "Make": ret[decoded] = str(value)
@@ -38,7 +38,7 @@ def getExifData(filename):
                 ret[decoded] =  getGeneralDate(value[0])+" "+value[1]
             elif decoded == "Orientation": ret[decoded] = getOrientation(value)
             elif decoded == "ExposureTime": ret[decoded] = str(value[0])+"/"+str(value[1])
-            elif decoded == "MaxApertureValue": ret[decoded] = str(value[0])+"/"+str(value[1])
+            elif decoded == "MaxApertureValue": ret[decoded] = float(value[0])/float(value[1])
             elif decoded == "YCbCrPositioning": ret[decoded]= getYCbCrPositioning(int(value))
             elif decoded == "GPSInfo": ret = getGpsInfo(ret, value)
     else:
@@ -391,7 +391,7 @@ def main(dbname, user, passwd, csvfl):
                 else: s = s + "NULL,"
                 if _if_exist(exif, 'ExposureTime') != None: s = s + "'" + str(exif['ExposureTime']).strip() + str("',")
                 else: s = s + "NULL,"
-                if _if_exist(exif, 'MaxApertureValue') != None: s = s + "'" + str(exif['MaxApertureValue']).strip() + str("',")
+                if _if_exist(exif, 'MaxApertureValue') != None: s = s + str(exif['MaxApertureValue']).strip() + str(",")
                 else: s = s + "NULL,"
                 if _if_exist(exif, 'Flash') != None: s = s + "'" + str(exif['Flash']).strip() + str("',")
                 else: s = s + "NULL,"
@@ -454,10 +454,10 @@ def main(dbname, user, passwd, csvfl):
                 s = s.strip(",") + ")\n"
                 
                 try:
-                    cur.execute(s)
                     count = count + 1
+                    cur.execute(s)
                 except:
-                    print("ERROR in :" + matnum)
+                    print("ERROR in :" + s)
                     pass
         else:
             print("No Entry in :" + matnum)
@@ -466,10 +466,10 @@ def main(dbname, user, passwd, csvfl):
     cur.close();
     con.close();
 
-dbname="danjiri_test"
-user = "yufujimoto"
-passwd = "nevergiveup;0224"
-csvfl = '/home/yufujimoto/Desktop/Danjiri/photos/photolist_20161128.csv' 
+dbname=""
+user = ""
+passwd = ""
+csvfl = '' 
 
 main(dbname, user, passwd, csvfl)
 

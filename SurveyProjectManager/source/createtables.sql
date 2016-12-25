@@ -60,27 +60,30 @@ CREATE TABLE section (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
  rep_id VARCHAR(36) NOT NULL REFERENCES report(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- modified_by VARCHAR(36) NOT NULL,
  order_number INT,
  section_name VARCHAR(255),
+ written_by VARCHAR(255),
+ created_by VARCHAR(36) NOT NULL,
+ modified_by VARCHAR(36) NOT NULL,
  date_created TIMESTAMP WITH TIME ZONE,
- date_modified TIMESTAMP WITH TIME ZONE
+ date_modified TIMESTAMP WITH TIME ZONE,
+ body TEXT
 );
 COMMENT ON TABLE public.section IS
 'This table defines sections of the survey report.
 Any kinds of explainations are denoted in this section.';
 
-
-CREATE TABLE article (
+CREATE TABLE surveydiary (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- sec_id VARCHAR(36) NOT NULL REFERENCES section(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- modified_by VARCHAR(36) NOT NULL,
- title VARCHAR(255),
- written_by VARCHAR(255),
- body TEXT,
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ mem_id VARCHAR(36) NOT NULL REFERENCES member(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  date_created TIMESTAMP WITH TIME ZONE,
- date_modified TIMESTAMP WITH TIME ZONE
+ date_modified TIMESTAMP WITH TIME ZONE,
+ weather VARCHAR(255),
+ tempurature REAL,
+ humidity REAL,
+ body TEXT
 );
 
 /* Organization */
@@ -189,7 +192,9 @@ CREATE TABLE material (
 CREATE TABLE digitized_image (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ prj_id VARCHAR(36) REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ rep_id VARCHAR(36) REFERENCES report(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ sec_id VARCHAR(36) REFERENCES section(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  con_id VARCHAR(36) REFERENCES consolidation(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  mat_id VARCHAR(36) REFERENCES material(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  filename		varchar,
@@ -209,7 +214,7 @@ CREATE TABLE digitized_image (
  exif_focallength	double precision,
  exif_isospeedratings	integer,
  exif_exposuretime	varchar,
- exif_maxaperturevalue	varchar,
+ exif_maxaperturevalue	double precision,
  exif_flash		varchar,
  exif_meteringmode	varchar,
  exif_lightsource	varchar,
@@ -286,7 +291,8 @@ CREATE TABLE material_to_material (
 CREATE TABLE figure (
  id SERIAL NOT NULL,
  uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- art_id VARCHAR(36) NOT NULL REFERENCES article(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ sec_id VARCHAR(36) REFERENCES section(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ dir_id VARCHAR(36) REFERENCES surveydiary(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  img_id VARCHAR(36) NOT NULL REFERENCES digitized_image(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
  label VARCHAR(10),
  number VARCHAR(10),
@@ -357,21 +363,6 @@ CREATE TABLE device_specification (
 );
 
 ALTER TABLE device_specification ADD CONSTRAINT PK_device_specification PRIMARY KEY (specid,equipmentsid,projectid);
-
-
-CREATE TABLE surveydiary (
- diaryid INT NOT NULL,
- projectid INT NOT NULL,
- organizationid INT,
- memberid INT,
- date_created TIMESTAMP WITH TIME ZONE,
- weather VARCHAR(255),
- tempurature REAL,
- humidity REAL,
- descriptions TEXT
-);
-
-ALTER TABLE surveydiary ADD CONSTRAINT PK_surveydiary PRIMARY KEY (diaryid,projectid);
 
 
 CREATE TABLE file (

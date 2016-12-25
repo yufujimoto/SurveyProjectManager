@@ -32,19 +32,19 @@
 	
 	// Get a list of registered project.
 	// Create a SQL query string.
-	$sql_select_mem = "SELECT * FROM member ORDER by id";
+	$sql_sel_mem = "SELECT * FROM member ORDER by id";
 	
 	// Excute the query and get the result of query.
-	$sql_result_mem = pg_query($conn, $sql_select_mem);
-	if (!$sql_result_mem) {
+	$sql_res_mem = pg_query($conn, $sql_sel_mem);
+	if (!$sql_res_mem) {
 		// Print the error messages and exit routine if error occors.
 		echo "An error occurred in DB query.\n";
 		exit;
 	}
 	
 	// Fetch rows of projects. 
-	$rows_mem = pg_fetch_all($sql_result_mem);
-	$row_cnt = 0 + intval(pg_num_rows($sql_result_mem));
+	$rows_mem = pg_fetch_all($sql_res_mem);
+	$row_cnt = 0 + intval(pg_num_rows($sql_res_mem));
 ?>
 <!DOCTYPE html>
 <html lang="ja">

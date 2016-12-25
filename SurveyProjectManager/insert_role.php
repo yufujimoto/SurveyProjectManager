@@ -1,5 +1,5 @@
 <?php
-    require 'lib/guid.php';
+    require "lib/guid.php";
     require "lib/password.php";
     require "lib/config.php";
     
@@ -39,10 +39,10 @@
                                     $rol_end
                                 )";
                 // Get the result of the query.
-                $sql_result_rol = pg_query($conn, $sql_inssert_rol);
+                $sql_res_rol = pg_query($conn, $sql_inssert_rol);
                 
                 // Check the result.
-                if (!$sql_result_rol) {
+                if (!$sql_res_rol) {
 					// Get the error message.
                     $err = pg_last_error($conn);
                     pg_close($conn);

@@ -27,6 +27,7 @@
 			if (move_uploaded_file($_FILES["avatar"]["tmp_name"], $uploadedfile)) {
 				// Change the permission of the file.
 				chmod($uploadedfile, 0777);
+				
 				// Create a image stream of the given file.
 				$source_image = imagecreatefromjpeg($uploadedfile);
 				$destination_image = "uploads/thumbnail_".$_REQUEST["id"].".jpg";

@@ -1,5 +1,6 @@
 <?php
-    $con_id = $_REQUEST["uuid"]
+	$prj_id = $_REQUEST["prj_id"];
+    $con_id = $_REQUEST["uuid"];
 ?>
 <!DOCTYPE html>
 <html>
@@ -87,34 +88,89 @@
 		    </div>
 	    </div>
 		
-		<!-- Main containts -->
-		<div id="container" class="container" style="padding-top: 30px">
-			<!-- Main Label of CSV uploader -->
-			<div class="row"><table class='table'>
-				<thead style="text-align: center">
-					<tr style="background-color:#343399; color:#ffffff;"><td colspan=2><h4>Import members from csv</h4></td></tr>
-				</thead>
-			</table></div>
+		<!-- Control Menu -->
+		<div class="container" style="padding-top: 30px">
+			<div id="main" class="row">
+				<table id="operation" class="table" style="padding: 0px; margin: 0px">
+					<thead style="text-align: center">
+						<!-- Main Label of CSV uploader -->
+						<tr>
+							<td colspan="4">
+								<h2>章の管理</h2>
+							</td>
+						</tr>
+						<tr>
+							<td style="text-align: left">
+									<button id="btn_bck_rep"
+											name="btn_bck_rep"
+											class="btn btn-sm btn-default"
+											type="submit" value="backToReport"
+											onclick='backToMaterial("<?php echo $con_id; ?>","<?php echo $prj_id; ?>");'>
+										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> 資料管理に戻る</span>
+									</button>
+							</td>
+						</tr>
+						<tr>
+							<td style='text-align: center; vertical-align: middle; width: 200px'>Choose a CSV file</td>
+							<form id="form_csv" method="post" enctype="multipart/form-data">
+								<td>
+									<div class="input-group">
+										<span class="input-group-btn">
+											<span class="btn btn-primary btn-file">
+												Browse&hellip;
+												<input id="input_csv"
+													   type="file"
+													   name="input_csv"
+													   size="50"
+													   accept=".txt,.TXT,.csv,.CSV"/>
+											</span>
+										</span>
+										<input id="name_csv"
+											   type="text"
+											   class="form-control"
+											   readonly="true"
+											   value=""/>
+									</div>
+								</td>
+								<td>
+									<input name="btn-upload"
+										   id="btn-upload"
+										   class="btn btn-md btn-success"
+										   type="submit" value="Upload"
+										   onclick="importCsv();"/>
+								</td>
+							</form>
+						</tr>
+						<!-- Display Errors -->
+						<tr>
+							<td colspan="4">
+								<p style="color: red; text-align: left"><?php echo $err; ?></p>
+							</td>
+						</tr>
+					</thead>
+				</table>
+			</div>
 			
+			<!-- Contents -->
 			<!-- Main interface for CSV uploader. -->
-			<div class="row"><table class='table' style="border: hidden">
-				<tr>
-					<form id="form_csv" method="post" enctype="multipart/form-data">
-						<td style='text-align: center; vertical-align: middle; width: 200px'>Choose a CSV file</td>
+			<div class="row">
+				<table class='table' style="border: hidden">
+					<tr>
 						<td>
-							<div class="input-group">
-								<span class="input-group-btn"><span class="btn btn-primary btn-file">Browse&hellip;
-								<input id="input_csv" type="file" name="csv_members" size="50" accept=".txt,.TXT,.csv,.CSV"></span></span>
-								<input id="name_csv" type="text" class="form-control" readonly value="">
-							</div>
+							<iframe style="border: 0; width: 100%; height: 400px"
+									name="iframe_csv"
+									src="parse_materials_csv.php">
+							</iframe>
 						</td>
-						<td><input name="btn-upload" id="btn-upload" class="btn btn-md btn-success" type="submit" value="Upload" onclick="importCsv();"/></td>
-					</form>
-				</tr>
-				<tr><td colspan=4>
-					<iframe style="border: 0; width: 100%; height: 400px" name="iframe_csv" src="parse_materials_csv.php" />
-				</td></tr>
-			</table></div>
+					</tr>
+				</table>
+			</div>
 		</div>
+		<!-- Javascripts -->
+		<script language="JavaScript" type="text/javascript">
+			function backToMaterial(uuid, prj_id){
+				window.location.href = "material.php?uuid=" + uuid + "&prj_id="  + prj_id;
+			}
+		</script>
     </body>
 </html>

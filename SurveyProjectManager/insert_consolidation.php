@@ -27,9 +27,6 @@
             $filestream = fopen($filename,'r');
             $data = fread($filestream,filesize($filename));
             $escaped= pg_escape_bytea($data);
-            
-            
-            
         } else {
             $filename = "images/noimage.jpg";
             $filestream = fopen($filename,'r');
@@ -101,10 +98,10 @@
                             $end,
                             $desc
                         )";
-        $sql_result = pg_query($conn, $sql_inssert);
+        $sql_res = pg_query($conn, $sql_inssert);
         
         // Check the result.
-        if (!$sql_result) {
+        if (!$sql_res) {
             // Get the error message.
             $err = pg_last_error($conn);
             

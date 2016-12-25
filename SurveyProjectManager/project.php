@@ -143,19 +143,19 @@
 					
 					// Get a list of registered project.
 					// Create a SQL query string.
-					$sql_select_prj = "SELECT * FROM project ORDER by id";
+					$sql_sel_prj = "SELECT * FROM project ORDER by id";
 					
 					// Excute the query and get the result of query.
-					$sql_result_prj = pg_query($conn, $sql_select_prj);
-					if (!$sql_result_prj) {
+					$sql_res_prj = pg_query($conn, $sql_sel_prj);
+					if (!$sql_res_prj) {
 						// Print the error messages and exit routine if error occors.
 						echo "An error occurred in DB query.\n";
 						exit;
 					}
 					
 					// Fetch rows of projects. 
-					$rows_prj = pg_fetch_all($sql_result_prj);
-					$row_cnt = 0 + intval(pg_num_rows($sql_result_prj));
+					$rows_prj = pg_fetch_all($sql_res_prj);
+					$row_cnt = 0 + intval(pg_num_rows($sql_res_prj));
 				?>
 				<h3><?php echo $row_cnt?>件のプロジェクトが登録されています。</h3>
 			</div>
@@ -210,7 +210,7 @@
 		
 		<!-- Javascript -->
 		<script type="text/javascript">
-			// Moove to other page to show the summary of the project.
+			// Move to other page to show the summary of the project.
 			function editProject(uuid) {
 				window.location.href = "edit_project.php?uuid=" + uuid;
 				return false;

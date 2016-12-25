@@ -221,7 +221,12 @@
 									<div class="form-group col-lg-4">
 										<div class="input-group">
 											<span class="input-group-addon" id="basic-addon1">終了:</span>
-											<input class="form-control" type='text' name="date_to" placeholder="YYYY-MM-DD" id="date_to" onclick="setSens('date_from', 'min');" >
+											<input class="form-control"
+												   type='text'
+												   name="date_to"
+												   placeholder="YYYY-MM-DD"
+												   id="date_to"
+												   onclick="setSens('date_from', 'min');" >
 										</div>
 									</div>
 									<!-- The phase of the project -->

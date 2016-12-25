@@ -16,8 +16,6 @@
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
 	$prj_id = $_REQUEST['uuid'];
@@ -29,8 +27,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 	<head>
-		<title>Project</title>
-		
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -47,28 +43,25 @@
 		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
-		
-		<!-- Import external scripts for generating image -->
-		<script type="text/javascript" src="lib/refreshImage.js"></script>
-		
-		<!-- Import external scripts for calendar control -->
-		<link rel="stylesheet" type="text/css" href="lib/calendar/codebase/dhtmlxcalendar.css"/>
-		<script src="lib/calendar/codebase/dhtmlxcalendar.js"></script>
-		<script type="text/javascript" src="lib/calendar.js"></script>
 	</head>
     
     <?php
-        // Connect to the Database.
-        $conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS)
-            or die('Connection failed: ' . pg_last_error());
+        // Connect to the DB.
+        $conn = pg_connect(
+                    "host=".DBHOST.
+                    " port=".DBPORT.
+                    " dbname=".DBNAME.
+                    " user=".DBUSER.
+                    " password=".DBPASS)
+                or die('Connection failed: ' . pg_last_error());
         
         // Check uploads and parse the uploaded CSV file.
-        if (is_uploaded_file($_FILES["csv_file"]["tmp_name"])) {
+        if (is_uploaded_file($_FILES["input_csv"]["tmp_name"])) {
             // Check the validity of the uploaded file and move the file to upload directory.
-            if (move_uploaded_file($_FILES["csv_file"]["tmp_name"], $csv_file)){
+            if (move_uploaded_file($_FILES["input_csv"]["tmp_name"], $csv_file)){
                 // change the permission of the file.
                 chmod($csv_file, 0777);
-                
+                echo "<p>CSV file is now uploading...</p>";
                 // Initialize variables.
                 $cnt_rows = 1;
                 $len_cols = 0;
@@ -79,6 +72,10 @@
                 
                 // Open the uploaded file as file stream.
                 if (($handle = fopen($csv_file, "r")) !== FALSE) {
+                    // Reload parent frame.
+                    echo "<p>Now Uploading... Please wait for a minutes. It may take long time.</p>";
+                    echo "<script type='text/javascript'>window.parent.location.reload()</script>";
+                
                     // Read a line of the uploaded csv file. Maximum length of the line is limitted to 10,000.
                     echo "<table class='table table-striped'>";
                     while (($data = fgetcsv($handle, 10000, ",")) !== FALSE) {
@@ -164,9 +161,9 @@
                                                 $mat_num,
                                                 $mat_dsc
                                             )";
-                            $sql_result_mat = pg_query($conn, $sql_inssert_mat);
+                            $sql_res_mat = pg_query($conn, $sql_inssert_mat);
                             // Check the result.
-                            if (!$sql_result_mat) {
+                            if (!$sql_res_mat) {
                                 // Get the error message.
                                 $err = pg_last_error($conn);
                             }
@@ -196,10 +193,10 @@
                                                     $add_val,
                                                     $add_typ
                                                 )";
-                                $sql_result_add = pg_query($conn, $sql_inssert_add);
+                                $sql_res_add = pg_query($conn, $sql_inssert_add);
                                 
                                 // Check the result.
-                                if (!$sql_result_add) {
+                                if (!$sql_res_add) {
                                     // Get the error message.
                                     $err = pg_last_error($conn);
                                     echo "ERROR:".$sql_inssert_add."</br>";
@@ -223,20 +220,20 @@
                     
                     for ($rel_cnt=0; $rel_cnt < $rel_length; $rel_cnt++) {
                         // Search a material uuid that is related from.
-                        $sql_select_mat_from = "SELECT uuid FROM material WHERE material_number = '" . $rel_from[$rel_cnt] . "'";
-                        $sql_result_mat_from = pg_query($conn, $sql_select_mat_from) or die('Query failed: ' . pg_last_error());
+                        $sql_sel_mat_from = "SELECT uuid FROM material WHERE material_number = '" . $rel_from[$rel_cnt] . "'";
+                        $sql_res_mat_from = pg_query($conn, $sql_sel_mat_from) or die('Query failed: ' . pg_last_error());
                         
                         // Get the material relating from.
-                        while ($mat_row_from = pg_fetch_assoc($sql_result_mat_from)) {
+                        while ($mat_row_from = pg_fetch_assoc($sql_res_mat_from)) {
                             $rel_from_uuid = $mat_row_from['uuid'];
                         }              
                         
                         // Get the material related to.
                         $rel_dest = explode(":", $rel_to[$rel_cnt]);
                         foreach ($rel_dest as $relto){
-                            $sql_select_mat_to = "SELECT uuid FROM material WHERE material_number = '" . $relto . "'";
-                            $sql_result_mat_to = pg_query($conn, $sql_select_mat_to) or die('Query failed: ' . pg_last_error());
-                            while ($mat_row_to = pg_fetch_assoc($sql_result_mat_to)) {
+                            $sql_sel_mat_to = "SELECT uuid FROM material WHERE material_number = '" . $relto . "'";
+                            $sql_res_mat_to = pg_query($conn, $sql_sel_mat_to) or die('Query failed: ' . pg_last_error());
+                            while ($mat_row_to = pg_fetch_assoc($sql_res_mat_to)) {
                                 $rel_to_uuid = $mat_row_to['uuid'];
                             }
                             
@@ -256,10 +253,10 @@
                                                     $relating_from,
                                                     $relating_to
                                                 )";
-                                $sql_result_mat2mat = pg_query($conn, $sql_inssert_mat2mat);
+                                $sql_res_mat2mat = pg_query($conn, $sql_inssert_mat2mat);
                                 
                                 // Check the result.
-                                if (!$sql_result_mat2mat) {
+                                if (!$sql_res_mat2mat) {
                                     // Get the error message.
                                     $err = pg_last_error($conn);
                                     echo "ERROR in REL:".$rel_from_uuid."|".$rel_to_uuid."|".$err."</br>";
@@ -280,6 +277,6 @@
                 }
             }
         } else {
-            echo "<p>CSV file is not uploaded...</p>";
+            echo "<p></p>";
         }
     ?>

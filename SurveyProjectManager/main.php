@@ -33,10 +33,10 @@
 			) or die('Connection failed: ' . pg_last_error());
 	
 	// Get member information, who is currently logging in.
-    $sql_select_mem = "SELECT * FROM member WHERE username = '" . $username . "'";
-    $sql_result_mem = pg_query($conn, $sql_select_mem) or die('Query failed: ' . pg_last_error());
+    $sql_sel_mem = "SELECT * FROM member WHERE username = '" . $username . "'";
+    $sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
 	
-    while ($row = pg_fetch_assoc($sql_result_mem)) {
+    while ($row = pg_fetch_assoc($sql_res_mem)) {
         $surname = $row['surname'];
         $firstname = $row['firstname'];
 		$usertype = $row['usertype'];
@@ -45,7 +45,7 @@
 	
 	// Get a list of registered project.
 	// Create a SQL query string.
-	$sql_select_prj = "SELECT	P.uuid,
+	$sql_sel_prj = "SELECT	P.uuid,
 									P.name,
 									P.beginning,
 									P.ending,
@@ -58,16 +58,16 @@
 							WHERE R.mem_id = '".$userid."' ORDER by P.id";
 	
 	// Excute the query and get the result of query.
-	$sql_result_prj = pg_query($conn, $sql_select_prj);
-	if (!$sql_result_prj) {
+	$sql_res_prj = pg_query($conn, $sql_sel_prj);
+	if (!$sql_res_prj) {
 		// Print the error messages and exit routine if error occors.
 		echo "An error occurred in DB query.\n";
 		exit;
 	}
 	
 	// Fetch rows of projects. 
-	$rows_prj = pg_fetch_all($sql_result_prj);
-	$row_cnt = 0 + intval(pg_num_rows($sql_result_prj));
+	$rows_prj = pg_fetch_all($sql_res_prj);
+	$row_cnt = 0 + intval(pg_num_rows($sql_res_prj));
 ?>
 
 <!DOCTYPE html>
@@ -231,8 +231,8 @@
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToConsolidation('".$prj_uuid."');>\n";
-							echo "\t\t\t\t\t\t\t\t\t<span>報告書の作成</span>\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToReport('".$prj_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t<span>報告書の編集</span>\n";
 							echo "\t\t\t\t\t\t\t\t</button>\n";
 							
 							echo "\t\t\t\t\t\t\t\t</div>";
@@ -250,13 +250,19 @@
 				//window.location.href = "consolidation.php?uuid=" + uuid;
 				window.location.href = "edit_member.php?user=" + uuid;
 			}
-			// Moove to other page to show the summary of the project.
+			// Move to other page to show the summary of the project.
 			function moveToConsolidation(uuid) {
 				//window.location.href = "consolidation.php?uuid=" + uuid;
 				window.location.href = "consolidation.php?uuid=" + uuid;
+				return false;
 			}
 			
-			// Moove to other page to show the summary of the project.
+			// Move to other page to show the summary of the project.
+			function moveToReport(uuid) {
+				window.location.href = "report.php?uuid=" + uuid;
+				return false;
+			}
+			// Move to other page to show the summary of the project.
 			function editProject(uuid) {
 				window.location.href = "edit_project.php?uuid=" + uuid;
 				return false;

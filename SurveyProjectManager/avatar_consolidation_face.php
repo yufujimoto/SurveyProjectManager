@@ -8,22 +8,29 @@
       exit;
     }
 	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
+	// Establish the connection.
+	$conn = pg_connect("host=".DBHOST.
+					   " port=".DBPORT.
+					   " dbname=".DBNAME.
+					   " user=".DBUSER.
+					   " password=".DBPASS);
 	
-	$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	// Check connection status.
 	if (!$conn) {
 		echo "An error occurred in DB connection.\n";
 		exit;
 	}
-	$conn_uuid = $_REQUEST["uuid"];
-	$sql_sel_prj = "SELECT faceimage FROM consolidation WHERE uuid='" .$conn_uuid."'" ;
-	$res_sel_prj = pg_query($sql_sel_prj);	
-	$ret_sel_prj = pg_fetch_result($res_sel_prj, "faceimage");
 	
-	header("Content-type: image/jpeg");
-	echo pg_unescape_bytea($ret_sel_prj);
+	// Query face image with specific uuid.  
+	$con_id = $_REQUEST["uuid"];
+	$sql_sel_con = "SELECT faceimage FROM consolidation WHERE uuid='" .$con_id."'" ;
+	$sql_res_con = pg_query($sql_sel_con);	
+	$sql_obj_con = pg_fetch_result($sql_res_con, "faceimage");
 	
+	// Close the connection.
 	pg_close($conn);
+	
+	// Display theimage.
+	header("Content-type: image/jpeg");
+	echo pg_unescape_bytea($sql_obj_con);
 ?>

@@ -26,19 +26,19 @@ $stat = array(
 
 foreach ($stat as $st=>$output) {
 	
-	$content = "";
+	$conntent = "";
 	// list of files
 	$files = array_values(array_map("trim", array_diff(explode("\n", file_get_contents("conf/".$st)), array(""))));
 	for ($q=0; $q<count($files); $q++) {
-		if (file_exists("../".$files[$q]) && !is_dir("../".$files[$q])) $content .= file_get_contents("../".$files[$q])."\n";
+		if (file_exists("../".$files[$q]) && !is_dir("../".$files[$q])) $conntent .= file_get_contents("../".$files[$q])."\n";
 	}
 	
 	// compress
-	if (strlen($content) > 0) {
+	if (strlen($conntent) > 0) {
 		
 		$name = "../../codebase/".$output;
 		
-		file_put_contents("temp.js", $content);
+		file_put_contents("temp.js", $conntent);
 		exec($compiler.' --type js temp.js -o "'.$name.'"');
 		unlink("temp.js");
 		
@@ -55,7 +55,7 @@ foreach ($stat as $st=>$output) {
 		
 		$output_d = "../../codebase/".$fname."_debug.js";
 		
-		file_put_contents($output_d, $content);
+		file_put_contents($output_d, $conntent);
 		print_r(sprintf("%10s bytes", number_format(filesize($output_d))).str_repeat(" ",4).$output_d."\n");
 		
 	}
@@ -93,19 +93,19 @@ for ($q=0; $q<count($files); $q++) {
 // css
 
 // read content
-$content = array();
+$conntent = array();
 $files = array_values(array_map("trim", explode("\n", file_get_contents("conf/stat_css"))));
 for ($q=0; $q<count($files); $q++) {
 	// detect skin
 	$path = pathinfo($files[$q]);
 	preg_match("/[a-z]*$/", $path["filename"], $m);
 	if (isset($m[0]) && in_array($m[0], $skins)) {
-		if (!isset($content[$m[0]])) $content[$m[0]] = "";
-		$content[$m[0]] .= file_get_contents("../".$files[$q]);
+		if (!isset($conntent[$m[0]])) $conntent[$m[0]] = "";
+		$conntent[$m[0]] .= file_get_contents("../".$files[$q]);
 	}
 }
 
-if (count($content) > 0) {
+if (count($conntent) > 0) {
 	print_r("\ncompress css\n".str_repeat("-",80)."\n");
 }
 
@@ -113,13 +113,13 @@ if (count($content) > 0) {
 for ($q=0; $q<count($skins); $q++) {
 	
 	// prepare dir
-	if (!isset($content[$skins[$q]])) continue;
+	if (!isset($conntent[$skins[$q]])) continue;
 	$output = "../../skins/".$skins[$q];
 	if (!file_exists($output)) mkdir($output);
 	$output .= "/".$fname.".css";
 	
 	// replace ../imgs/
-	$a = str_replace("../imgs/", "imgs/", $content[$skins[$q]]);
+	$a = str_replace("../imgs/", "imgs/", $conntent[$skins[$q]]);
 	
 	// compress
 	file_put_contents("temp.css", $a);

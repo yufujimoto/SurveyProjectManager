@@ -29,10 +29,10 @@
 	
 	// Get a list of registered project.
 	// Create a SQL query string.
-	$sql_select_con = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
+	$sql_sel_con = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
 	
 	// Excute the query and get the result of query.
-	$result_select_con = pg_query($conn, $sql_select_con);
+	$result_select_con = pg_query($conn, $sql_sel_con);
 	if (!$result_select_con) {
 		// Print the error messages and exit routine if error occors.
 		echo "An error occurred in DB query.\n";

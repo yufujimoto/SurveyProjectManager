@@ -14,9 +14,9 @@
 	$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
 	
 	// Find the project.
-	$sql_select_member = "SELECT * FROM member WHERE username = '" . $user . "'";
-    $res_select_member = pg_query($conn, $sql_select_member) or die('Query failed: ' . pg_last_error());
-    while ($mem_row = pg_fetch_assoc($res_select_member)) {
+	$sql_sel_member = "SELECT * FROM member WHERE username = '" . $user . "'";
+    $sql_select_member = pg_query($conn, $sql_sel_member) or die('Query failed: ' . pg_last_error());
+    while ($mem_row = pg_fetch_assoc($sql_select_member)) {
 		$mem_uid = $mem_row['uuid'];
         $org_id = $mem_row['org_id'];
         $mem_snm = $mem_row['surname'];

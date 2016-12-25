@@ -8,22 +8,29 @@
       exit;
     }
 	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
+	// Establish the connection.
+	$conn = pg_connect("host=".DBHOST.
+					   " port=".DBPORT.
+					   " dbname=".DBNAME.
+					   " user=".DBUSER.
+					   " password=".DBPASS);
 	
-	$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());
+	// Check connection status.
 	if (!$conn) {
 		echo "An error occurred in DB connection.\n";
 		exit;
 	}
-	$mat_uuid = $_REQUEST["uuid"];
-	$sql_sel_prj = "SELECT thumbnail FROM digitized_image WHERE mat_id='" .$mat_uuid."'" ;
-	$res_sel_prj = pg_query($sql_sel_prj);
-	$ret_sel_prj = pg_fetch_row($res_sel_prj, "thumbnail");
-	header("Content-type: image/jpeg");
-	echo pg_unescape_bytea($ret_sel_prj[0]);
 	
-	// close the connection to DB.
+	// Query thumbnail with specific uuid.  
+	$mat_id = $_REQUEST["uuid"];
+	$sql_sel_prj = "SELECT thumbnail FROM digitized_image WHERE mat_id='" .$mat_id."'" ;
+	$sql_res_prj = pg_query($sql_sel_prj);
+	$sql_obj_prj = pg_fetch_result($sql_res_prj, "thumbnail");
+	
+	// Close the connection.
 	pg_close($conn);
+	
+	// Display theimage.
+	header("Content-type: image/jpeg");
+	echo pg_unescape_bytea($sql_obj_prj);
 ?>

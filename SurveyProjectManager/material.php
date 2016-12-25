@@ -40,19 +40,19 @@
 	
 	// Get a list of registered project.
 	// Create a SQL query string.
-	$sql_select_mat = "SELECT * FROM material WHERE con_id = '".$con_id."' ORDER by ".$srt_key;
+	$sql_sel_mat = "SELECT * FROM material WHERE con_id = '".$con_id."' ORDER by ".$srt_key;
 	
 	// Excute the query and get the result of query.
-	$sql_result_mat = pg_query($conn, $sql_select_mat);
-	if (!$sql_result_mat) {
+	$sql_res_mat = pg_query($conn, $sql_sel_mat);
+	if (!$sql_res_mat) {
 		// Print the error messages and exit routine if error occors.
 		echo "An error occurred in DB query.\n";
 		exit;
 	}
 	
 	// Fetch rows of projects. 
-	$rows_mat = pg_fetch_all($sql_result_mat);
-	$row_cnt = 0 + intval(pg_num_rows($sql_result_mat));
+	$rows_mat = pg_fetch_all($sql_res_mat);
+	$row_cnt = 0 + intval(pg_num_rows($sql_res_mat));
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -143,7 +143,7 @@
 											name="btn_imp_mat"
 											class="btn btn-sm btn-success"
 											type="submit" 
-											onclick="importMaterials('<?php echo $con_id;?>');">
+											onclick="importMaterials('<?php echo $con_id;?>','<?php echo $prj_id;?>');">
 										<span class="glyphicon glyphicon-upload" aria-hidden="true"> 対象資料のインポート</span>
 									</button>
 									<!--
@@ -215,21 +215,21 @@
 							$mat_end = $row["estimated_period_ending"];
 							$mat_dsc = $row["descriptions"];
 							
-							$sql_select_img = "SELECT uuid FROM digitized_image WHERE mat_id='" .$mat_uuid."'" ;
-							$sql_result_img = pg_query($sql_select_img);
-							$img_cnt = 0 + intval(pg_num_rows($sql_result_img));
+							$sql_sel_img = "SELECT uuid FROM digitized_image WHERE mat_id='" .$mat_uuid."'" ;
+							$sql_res_img = pg_query($sql_sel_img);
+							$img_cnt = 0 + intval(pg_num_rows($sql_res_img));
 							
 							echo "\t\t\t\t\t<tr style='text-align: center;'>\n";
 							
 							if($img_cnt > 0){
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<a href='project_materials_view.php?uuid=" .$mat_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t<a href='avatar_material.php?uuid=" .$mat_uuid. "&type=original'>\n";
 								echo "\t\t\t\t\t\t\t\t<img height=96 src='avatar_material.php?uuid=" .$mat_uuid."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";
 							} else {
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<a href='project_materials_view.php?uuid=" .$mat_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t<a href='images/noimage.jpg'>\n";
 								echo "\t\t\t\t\t\t\t\t<img height=96 src='images/noimage.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";
@@ -262,7 +262,7 @@
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_mat'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=editMaterial('".$mat_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=editMaterial('".$prj_id."','".$con_id."','".$mat_uuid."');>\n";
 							echo "\t\t\t\t\t\t\t\t\t<span>資料情報の編集</span>\n";
 							echo "\t\t\t\t\t\t\t\t</button>\n";
 							echo "\t\t\t\t\t\t\t</div>\n";
@@ -288,8 +288,8 @@
 				return false;
 			}
 			
-			function importMaterials(uuid) {
-				window.location.href = "import_materials.php?uuid=" + uuid;
+			function importMaterials(uuid, prj_id) {
+				window.location.href = "import_materials.php?uuid=" + uuid + "&prj_id=" + prj_id;
 				return false;
 			}
 			
@@ -297,8 +297,12 @@
 				var diag_del_mat = confirm("この資料を削除しますか？");
 				if (diag_del_mat == true) {
 					// Send the member id to the PHP script to drop selected project from DB.
-					window.location.href = "delete_material.php?uuid=" + mat_id;
+					window.location.href = "delete_material.php?uuid=" + mat_id + "&con_id=" + con_id + "&prj_id=" + prj_id;
 				}
+			}
+			
+			function editMaterial(prj_id, con_id, mat_id) {
+				window.location.href = "update_material.php?uuid=" + mat_id + "&con_id=" + con_id + "&prj_id=" + prj_id;
 			}
 		</script>
     </body>
