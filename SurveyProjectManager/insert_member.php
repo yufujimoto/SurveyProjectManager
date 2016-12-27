@@ -12,25 +12,25 @@
     
     if (!$_REQUEST['mem_unm']) {
         $err = "ユーザー名が空白です。";
-        //header("Location: add_member.php?err=".$err);
+        header("Location: add_member.php?err=".$err);
         exit ;
     }
     
     if (!$_REQUEST['mem_pwd']) {
         $err = "パスワードが空白です。";
-        //header("Location: add_member.php?err=".$err);
+        header("Location: add_member.php?err=".$err);
         exit ;
     }
     
     if (!$_REQUEST['mem_eml']) {
         $err = "メールアドレスは必須です。";
-        //header("Location: add_member.php?err=".$err);
+        header("Location: add_member.php?err=".$err);
         exit ;
     }
     
     if (!$_REQUEST['org_nam']) {
         $err = "組織名は必須です。";
-        //header("Location: add_member.php?err=".$err);
+        header("Location: add_member.php?err=".$err);
         exit ;
     }
     
@@ -123,7 +123,7 @@
 			unlink("uploads/thumbnail_".$mem_avatar);
 			
             // Back to member add page.
-			//header("Location: add_member.php?err=".$err);
+			header("Location: add_member.php?err=".$err);
         }
         
         // Insert new record into the member table
@@ -182,7 +182,7 @@
 			unlink("uploads/thumbnail_".$mem_avatar);
 			
 			// Back to member add page.
-            //header("Location: add_member.php?err=".$err);
+            header("Location: add_member.php?err=".$err);
         }
         
     } catch (Exception $err) {
@@ -196,12 +196,12 @@
 		unlink("uploads/thumbnail_".$mem_avatar);
 		
 		// Back to member add page.
-		//header("Location: add_member.php?err=".$err);
+		header("Location: add_member.php?err=".$err);
     }
     
 	// close the connection to DB.
 	pg_close($conn);
 	
 	// Move to login page.
-    //header("Location: login.php");
+    header("Location: login.php");
 ?>
