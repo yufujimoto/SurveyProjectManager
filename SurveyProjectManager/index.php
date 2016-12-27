@@ -7,63 +7,87 @@
     $errMsg = $_REQUEST["msg"];
     
     if (isset($_REQUEST["submit"])) {
+		$errFlg = "";
+		
         // Check the user name.
         if (empty($_REQUEST["dbhost"])) {
             $errMsg = "ホスト名が未入力です。";
+			$errFlg = "ERROR";
         } else if (empty($_REQUEST["dbport"])) {
             $errMsg = "ポート番号が未入力です。";
+			$errFlg = "ERROR";
         } else if (empty($_REQUEST["dbname"])) {
             $errMsg = "データベース名が未入力です。";
+			$errFlg = "ERROR";
         } else if (empty($_REQUEST["dbuser"])) {
             $errMsg = "ユーザー名が未入力です。";
+			$errFlg = "ERROR";
         } else if (empty($_REQUEST["dbpass"])) {
             $errMsg = "パスワードが未入力です。";
-        }
-		} else if (empty($_REQUEST["srid"])) {
+			$errFlg = "ERROR";
+        } else if (empty($_REQUEST["srid"])) {
             $errMsg = "SRIDが未入力です。";
-        } 
-        
-        // Authenticate 
-        if (!empty($_REQUEST["dbuser"]) && !empty($_REQUEST["dbpass"])) {
-			$dbuser = $_REQUEST["dbuser"];
-            $dbpass = $_REQUEST["dbpass"];
-            
-            if (!empty($_REQUEST["dbhost"]) && !empty($_REQUEST["dbport"]) && !empty($_REQUEST["dbname"])) {
-                $dbhost = $_REQUEST["dbhost"];
-                $dbport = $_REQUEST["dbport"];
-                $dbname = $_REQUEST["dbname"];
-				$srid = $_REQUEST["srid"];
-                
-                $conn = pg_connect("host=".$dbhost." port=".$dbport." dbname=".$dbname." user=".$dbuser." password=".$dbpass);
-                
-                if (!empty($conn)) {
-                    $connfigfile = fopen("lib/config.php", "w");
-                    
-                    fwrite($connfigfile, '<?php'."\n");
-                    fwrite($connfigfile, "\t".'header("Content-Type: text/html; charset=UTF-8");'."\n");
-                    fwrite($connfigfile, "\t".'define("DBUSER", "'.$dbuser.'");'."\n");
-                    fwrite($connfigfile, "\t".'define("DBPASS", "'.$dbpass.'");'."\n");
-                    fwrite($connfigfile, "\t".'define("DBHOST", "'.$dbhost.'");'."\n");
-                    fwrite($connfigfile, "\t".'define("DBNAME", "'.$dbname.'");'."\n");
-                    fwrite($connfigfile, "\t".'define("DBPORT", "'.$dbport.'");'."\n");
-					fwrite($connfigfile, "\t".'define("SRID", "'.$srid.'");'."\n");
-                    fwrite($connfigfile, '?>');
-                    
-                    fclose($connfigfile);
-                    header("Location: login.php");
-                } else {
-                    $errMsg = "データベースに接続できません";
-                }
-                
-            } else {
-                $errMsg = "データベースの設定情報を確認してください";
-            }
-        } else {
-                $errMsg = "ユーザー名とパスワードの設定情報を確認してください";
+			$errFlg = "ERROR";
+        } else if (empty($_REQUEST["fullpath"])) {
+			$errMsg = "フルパスが未入力です。";
+			$errFlg = "ERROR";
+			if (!file_exists($_REQUEST["fullpath"])){
+				$errMsg = "フルパスが未入力です。";
+				$errFlg = "ERROR";
+			}
         }
-    }
-	// close the connection to DB.
-	pg_close($conn);
+		
+		if ($errFlg != "ERROR") {
+			// Authenticate 
+			if (!empty($_REQUEST["dbuser"]) && !empty($_REQUEST["dbpass"])) {
+				$dbuser = $_REQUEST["dbuser"];
+				$dbpass = $_REQUEST["dbpass"];
+				$fullpath = $_REQUEST["fullpath"];
+				
+				if (!empty($_REQUEST["dbhost"]) && !empty($_REQUEST["dbport"]) && !empty($_REQUEST["dbname"])) {
+					$dbhost = $_REQUEST["dbhost"];
+					$dbport = $_REQUEST["dbport"];
+					$dbname = $_REQUEST["dbname"];
+					$srid = $_REQUEST["srid"];
+					
+					$conn = pg_connect("host=".$dbhost." port=".$dbport." dbname=".$dbname." user=".$dbuser." password=".$dbpass);
+					
+					if (!empty($conn)) {
+						$connfigfile = fopen("lib/config.php", "w");
+						
+						// close the connection to DB.
+						pg_close($conn);
+						
+						fwrite($connfigfile, '<?php'."\n");
+						fwrite($connfigfile, "\t".'header("Content-Type: text/html; charset=UTF-8");'."\n");
+						fwrite($connfigfile, "\t".'define("DBUSER", "'.$dbuser.'");'."\n");
+						fwrite($connfigfile, "\t".'define("DBPASS", "'.$dbpass.'");'."\n");
+						fwrite($connfigfile, "\t".'define("DBHOST", "'.$dbhost.'");'."\n");
+						fwrite($connfigfile, "\t".'define("DBNAME", "'.$dbname.'");'."\n");
+						fwrite($connfigfile, "\t".'define("DBPORT", "'.$dbport.'");'."\n");
+						fwrite($connfigfile, "\t".'define("SRID", "'.$srid.'");'."\n");
+						fwrite($connfigfile, "\t".'define("FULLPATH", "'.$fullpath.'");'."\n");
+						fwrite($connfigfile, '?>');
+						
+						fclose($connfigfile);
+						
+						// Create the temporal first user for setting up this system.
+						$_SESSION["USERNAME"] = "FIRSTUSER";
+						$_SESSION["USERTYPE"] = "Administrator";
+						
+						header("Location: add_member.php?err=初期設定用ユーザーの作成");
+					} else {
+						$errMsg = "データベースに接続できません";
+					}
+					
+				} else {
+					$errMsg = "データベースの設定情報を確認してください";
+				}
+			} else {
+					$errMsg = "ユーザー名とパスワードの設定情報を確認してください";
+			}
+		}
+	}
 ?>
 <html lang="ja">
     <head>
@@ -122,6 +146,10 @@
 						<tr>
                             <td style="width: 150px">SRID（空間参照）</td>
                             <td><input type="text" name="srid" size="50" maxlength="150" class='form-control' value="4612"/><br /></td>
+                        </tr>
+						<tr>
+                            <td style="width: 150px">フルパス</td>
+                            <td><input type="text" name="fullpath" size="50" maxlength="150" class='form-control' value="/SurveyProjectManager/SurveyProjectManager"/><br /></td>
                         </tr>
                         <tr>
                             <td colspan="2" style="text-align: right"><input type="submit" id="submit" name="submit" value="設定" class='btn btn-default'></td>

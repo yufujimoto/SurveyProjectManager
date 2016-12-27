@@ -55,37 +55,6 @@ COMMENT ON TABLE public.report IS
 'This table defines information about the survey report.
 This table includes general citation information.';
 
-
-CREATE TABLE section (
- id SERIAL NOT NULL,
- uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- rep_id VARCHAR(36) NOT NULL REFERENCES report(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- order_number INT,
- section_name VARCHAR(255),
- written_by VARCHAR(255),
- created_by VARCHAR(36) NOT NULL,
- modified_by VARCHAR(36) NOT NULL,
- date_created TIMESTAMP WITH TIME ZONE,
- date_modified TIMESTAMP WITH TIME ZONE,
- body TEXT
-);
-COMMENT ON TABLE public.section IS
-'This table defines sections of the survey report.
-Any kinds of explainations are denoted in this section.';
-
-CREATE TABLE surveydiary (
- id SERIAL NOT NULL,
- uuid VARCHAR(36) NOT NULL PRIMARY KEY,
- prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- mem_id VARCHAR(36) NOT NULL REFERENCES member(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
- date_created TIMESTAMP WITH TIME ZONE,
- date_modified TIMESTAMP WITH TIME ZONE,
- weather VARCHAR(255),
- tempurature REAL,
- humidity REAL,
- body TEXT
-);
-
 /* Organization */
 CREATE TABLE organization (
  id SERIAL NOT NULL,
@@ -110,7 +79,6 @@ COMMENT ON COLUMN public.organization.city IS 'This attribute defines the city w
 COMMENT ON COLUMN public.organization.contact_address IS 'This attribute defines the contact address where the organization located. Defined by CI_Contact.';
 COMMENT ON COLUMN public.organization.zipcode IS 'This attribute defines the zip code where the organization located. Defined by CI_Contact..';
 COMMENT ON COLUMN public.organization.phone IS 'This attribute defines the phone number of the organization. Defined by CI_Contact.';
-
 
 /* Member */
 CREATE TABLE member (
@@ -156,6 +124,36 @@ CREATE TABLE role (
  ending DATE,
  rolename VARCHAR(255),
  biography TEXT
+);
+
+CREATE TABLE section (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ rep_id VARCHAR(36) NOT NULL REFERENCES report(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ order_number INT,
+ section_name VARCHAR(255),
+ written_by VARCHAR(255),
+ created_by VARCHAR(36) NOT NULL,
+ modified_by VARCHAR(36) NOT NULL,
+ date_created TIMESTAMP WITH TIME ZONE,
+ date_modified TIMESTAMP WITH TIME ZONE,
+ body TEXT
+);
+COMMENT ON TABLE public.section IS
+'This table defines sections of the survey report.
+Any kinds of explainations are denoted in this section.';
+
+CREATE TABLE surveydiary (
+ id SERIAL NOT NULL,
+ uuid VARCHAR(36) NOT NULL PRIMARY KEY,
+ prj_id VARCHAR(36) NOT NULL REFERENCES project(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ mem_id VARCHAR(36) NOT NULL REFERENCES member(uuid) ON UPDATE CASCADE ON DELETE CASCADE,
+ date_created TIMESTAMP WITH TIME ZONE,
+ date_modified TIMESTAMP WITH TIME ZONE,
+ weather VARCHAR(255),
+ tempurature REAL,
+ humidity REAL,
+ body TEXT
 );
 
 /* Consolidation */
@@ -303,7 +301,7 @@ CREATE TABLE figure (
 
 
 
-/* ---------------------------------------------------------------------------------------------------------- */
+/* 
 CREATE TABLE surface (
  surfaceid VARCHAR(255) NOT NULL,
  materialid INT NOT NULL,
@@ -313,7 +311,6 @@ CREATE TABLE surface (
 );
 
 ALTER TABLE surface ADD CONSTRAINT PK_surface PRIMARY KEY (surfaceid,materialid,consolidationid,projectid);
-
 
 CREATE TABLE equipments (
  equipmentsid INT NOT NULL,
@@ -353,7 +350,6 @@ CREATE TABLE Subject (
 
 ALTER TABLE Subject ADD CONSTRAINT PK_Subject PRIMARY KEY (subjectid,surfaceid,materialid,consolidationid,projectid);
 
-
 CREATE TABLE device_specification (
  specid INT NOT NULL,
  equipmentsid INT NOT NULL,
@@ -379,5 +375,4 @@ CREATE TABLE file (
  filename VARCHAR(255),
  mimetype VARCHAR(255)
 );
-
-
+ */

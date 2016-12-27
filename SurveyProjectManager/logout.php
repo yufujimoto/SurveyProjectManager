@@ -4,21 +4,21 @@
 	
 	// Check the current condition.
 	if (isset($_SESSION["USERNAME"])) {
-	  $err = "ログアウトしました。";
-		
+		$err = "ログアウトしました。";
+			
 		// Delete temporal files updated by this user.
 		$dir =  getcwd()."/uploads";
 		$files = scandir($dir);
-				foreach($files as $file){
-					$findme   = $_SESSION["USERNAME"];
-					$pos = strpos($file, $findme);
-					
-					if ($pos === false) {
-							echo "";
-					} else {
-							unlink($dir."/".$file);
-					}
-				}
+		foreach($files as $file){
+			$findme   = $_SESSION["USERNAME"];
+			$pos = strpos($file, $findme);
+			
+			if ($pos === false) {
+				echo "";
+			} else {
+				unlink($dir."/".$file);
+			}
+		}
 	}
 	else {
 		$err = "セッションがタイムアウトしました。";

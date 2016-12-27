@@ -60,7 +60,7 @@
     
     try{
         // Insert new record into the project table.
-        $sql_inssert = "INSERT INTO project (
+        $sql_inssert_prj = "INSERT INTO project (
                             uuid,
                             name,
                             title,
@@ -87,10 +87,10 @@
                             $user,
                             '{$faceimage}'
                         )";
-        $sql_res = pg_query($conn, $sql_inssert);
+        $sql_result_prj = pg_query($conn, $sql_inssert_prj);
         
         // Check the result.
-        if (!$sql_res) {
+        if (!$sql_result_prj) {
             // Get the error message.
             $err = pg_last_error($conn);
 			

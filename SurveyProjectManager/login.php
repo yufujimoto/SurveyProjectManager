@@ -17,18 +17,22 @@
     if (isset($_REQUEST["login"])) {
         // Check the user name.
         if (empty($_REQUEST["username"])) {
-        $err = "ユーザー名が未入力です。";
+			$err = "ユーザー名が未入力です。";
         } else if (empty($_REQUEST["password"])) {
-        $err = "パスワードが未入力です。";
+			$err = "パスワードが未入力です。";
         } 
         
         // Authenticate 
         if (!empty($_REQUEST["username"]) && !empty($_REQUEST["password"])) {
 			$username = $_REQUEST["username"];
             
-			$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS);
+			$conn = pg_connect("host=".DBHOST.
+							   " port=".DBPORT.
+							   " dbname=".DBNAME.
+							   " user=".DBUSER.
+							   " password=".DBPASS);
 			
-			if (!empty($conn)) {				
+			if (!empty($conn)) {
 				// Check the number of user
 				$sql_sel_mem_all = "SELECT * FROM member";
 				$sql_res_mem_all = pg_fetch_all($sql_sel_mem_all);
@@ -50,6 +54,9 @@
 					$usertype = $row['usertype'];
 				}
 				
+				// close the connection to DB.
+				pg_close($conn);
+	
 				// Check the password, and move to main page if successfully authorized.
 				if (password_verify($_REQUEST["password"], $password)) {
 					session_regenerate_id(true);
@@ -71,8 +78,6 @@
         }
     
     }
-	// close the connection to DB.
-	pg_close($conn);
 ?>
 <!DOCTYPE html>
 <html lang="ja">
