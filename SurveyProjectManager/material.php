@@ -223,13 +223,13 @@
 							
 							if($img_cnt > 0){
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<a href='avatar_material.php?uuid=" .$mat_uuid. "&type=original'>\n";
+								echo "\t\t\t\t\t\t\t<a href='#' onclick=".'"'."editMaterial('".$prj_id."','".$con_id."','".$mat_uuid."'); return false;".'"'.">\n";
 								echo "\t\t\t\t\t\t\t\t<img height=96 src='avatar_material.php?uuid=" .$mat_uuid."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";
 							} else {
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<a href='images/noimage.jpg'>\n";
+								echo "\t\t\t\t\t\t\t<a href='#' onclick=".'"'."editMaterial('".$prj_id."','".$con_id."','".$mat_uuid."'); return false;".'"'.">\n";
 								echo "\t\t\t\t\t\t\t\t<img height=96 src='images/noimage.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";
@@ -302,7 +302,7 @@
 			}
 			
 			function editMaterial(prj_id, con_id, mat_id) {
-				window.location.href = "update_material.php?uuid=" + mat_id + "&con_id=" + con_id + "&prj_id=" + prj_id;
+				window.location.href = "edit_material.php?uuid=" + mat_id + "&con_id=" + con_id + "&prj_id=" + prj_id;
 			}
 		</script>
     </body>

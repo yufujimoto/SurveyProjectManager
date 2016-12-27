@@ -62,7 +62,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 	<head>
-		<title>Section</title>
+		<title>Details about Material</title>
 		
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -169,7 +169,18 @@
 						</tr>
 						<tr>
 							<td colspan=7 style="text-align: left">
-								<!--<div class="btn-group">
+								<div class="btn-group">
+									<button id="btn_save"
+											name="btn_save"
+											class="btn btn-sm btn-primary"
+											type="submit"
+											onclick='updateMeterial(
+														"<?php echo $prj_id; ?>",
+														"<?php echo $con_id; ?>",
+														"<?php echo $mat_id; ?>"
+									);'>
+									<span>上書き保存</span>
+									</button>
 									<!--
 									<button id="btn_imp_mat"
 											name="btn_imp_mat"
@@ -217,11 +228,29 @@
 								$mat_mnm = $row_mat['material_number'];
 								$mat_dsc = $row_mat['descriptions'];
 								
+								$sql_sel_mat_add = "SELECT
+														uuid,
+														key,
+														value,
+														type
+														FROM additional_information WHERE mat_id = '".$mat_id."'";
+								
+								// Excute the query and get the result of query.
+								$sql_res_mat_add = pg_query($conn, $sql_sel_mat_add);
+								if (!$sql_res_mat_add) {
+									// Print the error messages and exit routine if error occors.
+									echo "An error occurred in DB query.\n";
+									exit;
+								}
+								// Get additional Attributes of the material
+								$rows_mat_add = pg_fetch_all($sql_res_mat_add);
+								
 								// Give the table id by using report id.
 								$tbl_mat_id = "tbl_img_".$mat_id;
 							}
 						?>
 						<td style='vertical-align: top; width: 500px'>
+							<h4>基本属性</h4>
 							<div class="input-group">
 								<span class="input-group-addon" id="basic-addon1" style="width: 100px">資料番号:</span>
 								<input class="form-control"
@@ -247,8 +276,8 @@
 										<span class="input-group-addon" id="basic-addon1" style="width: 50px">開始</span>
 										<input class="form-control"
 													   type="text"
-													   name="inp_mat_nam"
-													   id="inp_mat_nam"
+													   name="inp_mat_bgn"
+													   id="inp_mat_bgn"
 													   style="width: 300px"
 													   value="<?php echo $mat_est_bgn; ?>"/>
 									</div>
@@ -256,25 +285,45 @@
 										<span class="input-group-addon" id="basic-addon1" style="width: 50px">終了</span>
 										<input class="form-control"
 													   type="text"
-													   name="inp_mat_nam"
-													   id="inp_mat_nam"
+													   name="inp_mat_end"
+													   id="inp_mat_end"
 													   style="width: 300px"
 													   value="<?php echo $mat_est_end; ?>"/>
 										</div>
-									</div>
 								</div>
-								<div class="input-group">
-									<span class="input-group-addon" id="basic-addon1" style="width: 100px">備考</span>
-									<form id="frm_txt" method="post">
-										<textarea id="sec_txt"
-												  class='form-control'
-												  style='resize: none; width: 354px; text-align: left'rows='5'
-												  name='intro'><?php echo $mat_dsc; ?></textarea>
-									</form>
-								</div>
+							</div>
+							<div class="input-group">
+								<span class="input-group-addon" id="basic-addon1" style="width: 100px">備考</span>
+								<textarea id="inp_mat_dsc"
+										  class='form-control'
+										  style='resize: none; width: 354px; text-align: left'rows='5'
+										  name='intro'><?php echo $mat_dsc; ?></textarea>
+							</div>
+							<h4>付加属性</h4>
+								<?php
+									foreach ($rows_mat_add as $row_mat_add){
+										$mat_add_id = $row_mat_add['uuid'];
+										$mat_add_key = $row_mat_add['key'];
+										$mat_add_val = $row_mat_add['value'];
+										$mat_add_typ = $row_mat_add['type'];
+										
+										if($mat_add_key!="" or $mat_add_val!=""){
+											echo "\t\t\t\t\t\t\t\t<div class='input-group'>\n";
+											echo "\t\t\t\t\t\t\t\t\t<span class='input-group-addon' id='basic-addon1' style='width: 100px'>".$mat_add_key.":</span>\n";
+											echo "\t\t\t\t\t\t\t\t\t<input class='form-control' type='text' name='inp_mat_nam' id='inp_mat_nam' style='width: 354px' value='".$mat_add_val."'/>\n";
+											echo "\t\t\t\t\t\t\t\t</div>\n";
+										}
+									}
+									
+								?>
 							</td>
 							<td>
-								hogehoge
+								<iframe
+									id="iframe_img"
+									name="hoge"
+									style="width: 700px; height: 400px; border: hidden; border-color: #999999;">
+								</iframe>
+								<input id="img_zoom" type="range" onchange="zoomChanged();"/>
 							</td>
 						</tr>
 						<tr style="text-align: left;">
@@ -287,96 +336,94 @@
 											<td> </td>
 										</tr>
 										<?php
-											// Get user name by uuid.
-											$sql_sel_fig = "SELECT * FROM digitized_image WHERE mat_id = '" .$mat_id. "'";
+											// Get user name by uuid. 
+											$sql_sel_fig = "SELECT * FROM digitized_image WHERE mat_id = '" .$mat_id. "' ORDER BY id";
 											$sql_res_fig = pg_query($conn, $sql_sel_fig) or die('Query failed: ' . pg_last_error());
 											$rows_fig = pg_fetch_all($sql_res_fig);
 											
 											foreach ($rows_fig as $row_fig){
 												$img_id = $row_fig['uuid'];
 												$img_dtc = $row_fig['exif_datetime'];
-												$img_dsc = $row_fig['description'];
+												$img_dsc = $row_fig['descriptions'];
+												$src_img = "material_image_view.php?uuid=".$img_id;
 												
-												echo "\t\t\t\t\t\t\t\t<tr id='".$img_id."' name='".$img_id."'>\n";
-												echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: top; width: 200px; text-align:center'>";
-												echo "\t\t\t\t\t\t\t\t\t\t<a href='material_image_view.php?uuid=" .$img_id. "&type=original'>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t<img height=150 src='material_image_view.php?uuid=" .$img_id."' alt='img'/>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t</a>";
-												echo "\t\t\t\t\t\t\t\t\t</td>\n";
-												echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center; width: 200px'>".$img_dtc."</td>\n";
-												echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t<textarea class='form-control' style='resize: none;' rows='5'>".$img_dsc."</textarea>\n";
-												echo "\t\t\t\t\t\t\t\t\t</td>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t<tr id='".$img_id."' name='".$img_id."'>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t<td style='vertical-align: top; width: 200px; text-align:center'>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t<a href='#' onclick=".'"'."showViewer('".$img_id."'); return false;".'"'.">\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t<img height=150 src='".$src_img."' alt='".$src_img."'/>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t</a>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t</td>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center; width: 200px'>".$img_dtc."</td>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t<textarea id='dsc_".$img_id."' class='form-control' style='resize: none;' rows='5'>".$img_dsc."</textarea>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t</td>\n";
 												
 												// Control menu.
-												echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px'>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px'>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
 												
 												// Create a button for moving to consolidation page.
-												echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('".$tbl_img_id."','".$img_id."');>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t<span>図の削除</span>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('".$tbl_img_id."','".$img_id."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span>図の削除</span>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t</button>\n";
 												
-												echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveToSection('".$img_id."');>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t<span>章の編集</span>\n";
-												echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tonclick=updateImageDescription('".$prj_id."','".$con_id."','".$mat_id."','".$img_id."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span>備考の更新</span>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t</button>\n";
 												
-												echo "\t\t\t\t\t\t\t\t\t\t</div>\n";
-												echo "\t\t\t\t\t\t\t\t\t</td>\n";
-												echo "\t\t\t\t\t\t\t\t\t</tr>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t</div>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t</td>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t</tr>\n";
 											}
-											echo "\t\t\t\t\t\t\t</table>\n";
-											echo "\t\t\t\t\t\t</td>\n";
-											echo "\t\t\t\t\t</tr>\n";
+											echo "\t\t\t\t\t\t\t\t\t</table>\n";
+											echo "\t\t\t\t\t\t\t\t</td>\n";
+											echo "\t\t\t\t\t\t\t</tr>\n";
 										// Close the connection to the database.
 										pg_close($conn);
 									?>
-								</div>
-							</td>
-						</tr>
-						<tr style='text-align: left;'>
-							<td style="width: auto; text-align: right" colspan="2">
-								<form class="form-inline" id="form_figure" method="post" enctype="multipart/form-data">
-									<div class="input-group">
+							<tr style='text-align: left;'>
+								<td style="width: auto; text-align: right" colspan="2">
+									<form class="form-inline" id="form_figure" method="post" enctype="multipart/form-data">
 										<div class="input-group">
-											<span class="input-group-btn">
-												<span class="btn btn-primary btn-file">
-													Browse&hellip;
-													<input id="input_avatar"
-														   name="avatar"　
-														   type="file"
-														   size="50"
-														   accept=".jpg,.JPG,.jpeg,.JPEG" />
+											<div class="input-group">
+												<span class="input-group-btn">
+													<span class="btn btn-primary btn-file">
+														Browse&hellip;
+														<input id="input_avatar"
+															   name="avatar"　
+															   type="file"
+															   size="50"
+															   accept=".jpg,.JPG,.jpeg,.JPEG" />
+													</span>
 												</span>
-											</span>
-											<input id="name_avatar" 
-												   name="name_avatar"
-												   class="form-control" 
-												   type="text"
-												   style="width:300px"
-												   readonly value=""/>
+												<input id="name_avatar" 
+													   name="name_avatar"
+													   class="form-control" 
+													   type="text"
+													   style="width:300px"
+													   readonly value=""/>
+											</div>
+											<input id="btn-upload" 
+													   name="btn-upload"
+													   class="btn btn-md btn-success"
+													   type="submit"
+													   value="アップロード"
+													   onclick='addImageRow();'/>
 										</div>
-										<input id="btn-upload" 
-												   name="btn-upload"
-												   class="btn btn-md btn-success"
-												   type="submit"
-												   value="アップロード"
-												   onclick='addImageRow();'/>
-									</div>
-								</form>
-							</td>
-						</tr>
-				</table>
-			</div>
-		</div>
+									</form>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
@@ -500,12 +547,29 @@
 
 			}
 			
-			function moveUp(tbl_id, row_id){
-				rowUp(tbl_id, row_id);
+			function showViewer(uuid){
+				var iframe = document.getElementById('iframe_img');
+				var ratio = document.getElementById('img_zoom').value/100;
+				var source = "lib/simple_viewer.php?uuid=" + uuid + "&ratio=" + ratio;
+				
+				document.getElementById('iframe_img').name = uuid;
+				
+				iframe.src = source;
 			}
 			
-			function moveDown(tbl_id, row_id){
-				rowDown(tbl_id, row_id);
+			function zoomChanged(){
+				var iframe = document.getElementById('iframe_img');
+				var uuid = iframe.name;
+				var ratio = document.getElementById('img_zoom').value/100;
+				var source = "lib/simple_viewer.php?uuid=" + uuid + "&ratio=" + ratio;
+				
+				iframe.src = source;
+			}
+			
+			function updateImageDescription(prj_id, con_id, mat_id, img_id) {
+				var mat_img_desc = document.getElementById('dsc_'+img_id).value;
+				window.location.href = "update_material_image.php?uuid=" + img_id + "&dsc=" + mat_img_desc + "&prj_id=" + prj_id + "&con_id=" + con_id + "&mat_id=" + mat_id;
+				return false;
 			}
 			
 			function backToMaterial(con_id, prj_id) {
@@ -513,12 +577,8 @@
 				return false;
 			}
 			
-			function updateSection(uuid){
-				var frm_txt = document.getElementById("frm_txt");
-				frm_txt.action="update_mattion_body.php?uuid=" + uuid;
-				frm_txt.submit();
-				
-				//window.location.href = "update_mattion_body.php?uid="+content;
+			function updateMeterial(prj_id, con_id, mat_id){
+				window.location.href = "update_material.php?uuid=" + mat_id + "&prj_id=" + prj_id + "&con_id=" + con_id;
 			}
 		</script>
 	</body>

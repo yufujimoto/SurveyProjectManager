@@ -247,7 +247,7 @@
 											   id="writer" value='<?php echo $sec_wtr;?>'/>
 							</p>
 							<form id="frm_txt" method="post">
-								<textarea id="sec_txt" class='form-control' style='resize: none;'rows='20' name='intro'></textarea>
+								<textarea id="sec_txt" class='form-control' style='resize: none;'rows='50' name='intro'></textarea>
 							</form>
 							
 						</td>
