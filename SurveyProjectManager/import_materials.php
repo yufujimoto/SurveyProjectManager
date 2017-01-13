@@ -1,6 +1,23 @@
 <?php
+	header("Content-Type: text/html; charset=UTF-8");
+	
+	// Start the session.
+    session_start();
+    
+    // Check session status.
+    if (!isset($_SESSION["USERNAME"])) {
+      header("Location: logout.php");
+      exit;
+    }
+	
+	// Load external libraries.
+	require "lib/guid.php";
+    require "lib/config.php";
+	
+	// Get parameters from post.
+	$err = $_REQUEST["err"];
 	$prj_id = $_REQUEST["prj_id"];
-    $con_id = $_REQUEST["uuid"];
+    $con_id = $_REQUEST["con_id"];
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,8 +35,8 @@
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
+		\n
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -95,19 +112,39 @@
 					<thead style="text-align: center">
 						<!-- Main Label of CSV uploader -->
 						<tr>
-							<td colspan="4">
-								<h2>章の管理</h2>
+							<td colspan="3">
+								<h2>資料の一括インポート</h2>
 							</td>
 						</tr>
 						<tr>
-							<td style="text-align: left">
+							<td colspan="3" style="text-align: left">
 									<button id="btn_bck_rep"
 											name="btn_bck_rep"
 											class="btn btn-sm btn-default"
 											type="submit" value="backToReport"
-											onclick='backToMaterial("<?php echo $con_id; ?>","<?php echo $prj_id; ?>");'>
+											onclick='backToMaterial("<?php echo $prj_id; ?>","<?php echo $con_id; ?>");'>
 										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> 資料管理に戻る</span>
 									</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="3" style="text-align: left">
+								<div class="btn-group">
+									<button id="btn_add_mat"
+											name="btn_add_mat"
+											class="btn btn-sm btn-success"
+											type="submit" value="add_material"
+											onclick="downloadTemplate();">
+										<span class="glyphicon glyphicon-download" aria-hidden="true"> テンプレートのダウンロード</span>
+									</button>
+									<button id="btn_add_mat"
+											name="btn_add_mat"
+											class="btn btn-sm btn-success"
+											type="submit" value="add_material"
+											onclick="downloadImageImporter();">
+										<span class="glyphicon glyphicon-download" aria-hidden="true"> 画像登録スクリプトのダウンロード</span>
+									</button>
+								</div>
 							</td>
 						</tr>
 						<tr>
@@ -143,7 +180,7 @@
 						</tr>
 						<!-- Display Errors -->
 						<tr>
-							<td colspan="4">
+							<td colspan="3">
 								<p style="color: red; text-align: left"><?php echo $err; ?></p>
 							</td>
 						</tr>
@@ -168,8 +205,48 @@
 		</div>
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
-			function backToMaterial(uuid, prj_id){
-				window.location.href = "material.php?uuid=" + uuid + "&prj_id="  + prj_id;
+			function backToMaterial(prj_id, con_id){
+				var con_form = document.createElement("form");
+				document.body.appendChild(con_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				con_form.appendChild(inp_prj_id);
+				con_form.appendChild(inp_con_id);
+				
+				con_form.setAttribute("action", "material.php");
+				con_form.setAttribute("method", "post");
+				con_form.submit();
+				
+				return false;
+			}
+			
+			function downloadTemplate(){
+				var dl = document.createElement("a");
+				dl.download = "source/material_list.csv";
+				dl.href = "source/material_list.csv";
+				dl.click();
+				
+				return false;
+			}
+			
+			function downloadImageImporter(){
+				var dl = document.createElement("a");
+				dl.download = "source/importimages.zip";
+				dl.href = "source/importimages.zip";
+				dl.click();
+				
+				return false;
 			}
 		</script>
     </body>

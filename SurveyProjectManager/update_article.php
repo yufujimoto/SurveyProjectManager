@@ -409,10 +409,9 @@
 			
 			$sql_update_img = "UPDATE digitized_image SET descriptions='$img_dsc' WHERE uuid='$img_uuid'";
 			$sql_res = pg_query($conn, $sql_update_img);
-			
-			echo $sql_update_img;
 		}
     }
+	
     // Remove extra elements from the XML DOM document.
     echo "<hr/>";
 	$txt_bdy = $obj_bdy->saveXML();

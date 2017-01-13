@@ -8,34 +8,54 @@
       exit;
     }
 	
-	// Only the administrator can access to this page.
 	if ($_SESSION["USERTYPE"] != "Administrator") {
 		header("Location: main.php");
+		exit;
 	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
 	$err = $_REQUEST['err'];
-	$uuid = $_REQUEST['uuid'];
+	$uuid = $_REQUEST['prj_id'];
+	
+	// Generate unique ID for saving temporal files.
+	$tmp_nam = uniqid($_SESSION["USERNAME"]."_");
 	
 	// Connect to the DB.
-	$conn = pg_connect("host=".DBHOST.
-					   " port=".DBPORT.
-					   " dbname=".DBNAME.
-					   " user=".DBUSER.
-					   " password=".DBPASS)
-			or die('Connection failed: ' . pg_last_error());
+	$conn = pg_connect(
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS);
+	
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
 	
 	// Find the project.
 	$sql_sel_prj = "SELECT * FROM project WHERE uuid = '" . $uuid . "'";
-    $sql_res_prj = pg_query($conn, $sql_sel_prj) or die('Query failed: ' . pg_last_error());
+    $sql_res_prj = pg_query($conn, $sql_sel_prj);
+	if (!$sql_res_prj) {
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
     while ($prj_row = pg_fetch_assoc($sql_res_prj)) {
-		$prj_uid = $prj_row['uuid'];
+		$prj_id = $prj_row['uuid'];
         $prj_nam = $prj_row['name'];
         $prj_ttl = $prj_row['title'];
 		$prj_bgn = $prj_row['beginning'];
@@ -70,8 +90,8 @@
 		<link href="lib/modal.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
+		\n
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -105,9 +125,16 @@
 				});
 			});
 		</script>
+		
+		<!-- Get an avatar image on load. -->
+		<script>
+			function doOnLoad(){
+				refreshAvatar(id="<?php echo $tmp_nam;?>",h=400,w="",target="consolidation");
+			}
+		</script>
 	</head>
 
-	<body>
+	<body onload="doOnLoad();">
 	    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 		    <div class="container">
 		      <div class="navbar-header">
@@ -137,7 +164,7 @@
 						<!-- Main Label of CSV uploader -->
 						<tr>
 							<td>
-								<h2>プロジェクトの編集</h2>
+								<h2>統合体の管理</h2>
 							</td>
 						</tr>
 						<tr>
@@ -146,9 +173,31 @@
 											name="btn_add_mat"
 											class="btn btn-sm btn-default"
 											type="submit" value="add_material"
-											onclick="backToProject()">
+											onclick="backToMyPage()">
 										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> マイページに戻る</span>
 									</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan=7 style="text-align: left">
+								<div class="btn-group">
+									<button id="btn_udt_prj"
+											name="btn_udt_prj"
+											class="btn btn-sm btn-primary"
+											type="submit"
+											onclick='updateProject("<?php echo $prj_id; ?>","<?php echo $tmp_nam; ?>");'>
+										<span class="glyphicon glyphicon-save" aria-hidden="true"> 上書き保存</span>
+									</button>
+									<!--
+									<button id="btn_exp_mat"
+											name="btn_exp_mat"
+											class="btn btn-sm btn-success"
+											type="submit" 
+											onclick="ExportConsolidationByCsv();">
+										<span class="glyphicon glyphicon-download" aria-hidden="true"> 対象資料のエクスポート</span>
+									</button>
+									-->
+								</div>
 							</td>
 						</tr>
 						<!-- Display Errors -->
@@ -160,378 +209,440 @@
 					</thead>
 				</table>
 			</div>
-			
 			<!-- Avatar -->
-			<div class="row">
-				<table class='table table' style="border: hidden">
-					<!-- iFrame for showing Avatar -->
-					<tr style="text-align: center">
-						<td colspan="2">
-							<iframe id="iframe_avatar" 
-									name="iframe_avatar"
-									style="width: 610px; height: 410px; border: hidden; border-color: #999999;"
-									src="avatar_uploaded.php?width=600&height=400&target=project&img_id=<?php echo $uuid; ?>">
-							</iframe>
-						</td>
-					</tr>
-					<tr>
-						<form id="form_avatar" method="post" enctype="multipart/form-data">
-							<td style="width: auto">
-								<div class="input-group">
-									<span class="input-group-btn">
-										<span class="btn btn-primary btn-file">
-											Browse&hellip;
-											<input id="input_avatar"
-												   name="avatar"　
-												   type="file"
-												   size="50"
-												   accept=".jpg,.JPG,.jpeg,.JPEG" />
-										</span>
-									</span>
-									<input id="name_avatar" 
-										   name="name_avatar"
-										   class="form-control" 
-										   type="text"
-										   readonly value=""/>
+			<ul class="nav nav-tabs">
+				<li class="active"><a data-toggle="tab" href="#tab_bsc">基本情報</a></li>
+				<li><a data-toggle="tab" href="#tab_dsc">概要</a></li>
+				<li><a data-toggle="tab" href="#tab_rep">報告書管理</a></li>
+				<li><a data-toggle="tab" href="#tab_mem">メンバー管理</a></li>
+			</ul>
+			
+			<div class="tab-content">
+				<div id="tab_bsc" class="tab-pane fade in active">
+					<h4><span class="glyphicon glyphicon-info-sign" aria-hidden="true"> 基本情報</span></h4>
+					<table class="table table" style="border: hidden">
+						<!-- iFrame for showing Avatar -->
+						<tr style="text-align: left">
+							<td>
+								<iframe id="iframe_avatar"
+										name="iframe_avatar"
+										style="width: 510px;
+										height: 300px;
+										border:
+										hidden;
+										border-color: #999999;"
+										src="avatar_uploaded.php?target=project&height=300&width=500&img_id=<?php echo $prj_id; ?>">
+								</iframe>
+								<form id="form_avatar" class="form-inline" method="post" enctype="multipart/form-data">
+									<div class="form-group">
+										<div class="input-group">
+											<span class="input-group-btn">
+												<span class="btn btn-primary btn-file">画像の参照&hellip;
+													<input id="input_avatar"
+													   name="avatar"　
+													   type="file"
+													   size="50"
+													   accept=".jpg,.JPG,.jpeg,.JPEG" />
+												</span>
+											</span>
+											<input id="name_avatar"
+												   name="name_avatar"
+												   type="text"
+												   class="form-control"
+												   style="width: 300px"
+												   readonly/>
+										</div>
+									</div>
+									<div class="form-group">
+										<input id="btn-upload"
+											   name="btn-upload"
+											   class="btn btn-md btn-success"
+											   type="submit"
+											   value="アップロード"
+											   style="width: 100px"
+											   onclick='refreshAvatar(id="<?php echo $tmp_nam;?>",h=300,w="",target="consolidation");'/>
+									</div>
+								</form>
+							</td>
+							<td id="td_prj_inf" style='vertical-align: top;'>
+								<div id="div_prj_bsc_inf" name="div_con_inf">
+									<div id="div_prj_reg_psn" class="input-group">
+										<span class="input-group-addon" style="width: 120px">登録者:</span>
+										<input id="prj_reg_psn"
+											   name="prj_reg_psn"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   readonly="true"
+											   value="<?php echo $prj_cby; ?>"
+											   />
+									</div>
+									<div id="div_prj_reg_dt" class="input-group">
+										<span class="input-group-addon" style="width: 120px">登録日時:</span>
+										<input id="prj_reg_dt"
+											   name="prj_reg_dt"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   readonly="true"
+											   value="<?php echo $prj_cdt; ?>"
+											   />
+									</div>
+									<div id="div_prj_ttl" class="input-group">
+										<span class="input-group-addon" style="width: 120px">課題名:</span>
+										<input id="prj_ttl"
+											   name="prj_ttl"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   value="<?php echo $prj_ttl; ?>"
+											   />
+									</div>
+									<div id="div_prj_nam" class="input-group">
+										<span class="input-group-addon" style="width: 120px">プロジェクト名:</span>
+										<input id="prj_nam"
+											   name="prj_nam"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   value="<?php echo $prj_nam; ?>"
+											   />
+									</div>
+									<div id="div_prj_bgn" class="input-group">
+										<span class="input-group-addon" style="width: 120px">存在期間:</span>
+										<div class="input-group-vertical">
+											<div id="div_grp_prj_bgn" class="input-group">
+												<span class="input-group-addon" style="width: 100px">開始年月日</span>
+												<input id="prj_bgn"
+													   name="prj_bgn"
+													   class="form-control"
+													   type="text"
+													   style="width: 354px"
+													   onclick="newDate('date_from');"  
+													   value="<?php echo $prj_bgn; ?>"/>
+											</div>
+											<script type="text/javascript">newDate("prj_bgn");</script>
+											
+											<div id="div_grp_prj_end" class="input-group">
+												<span class="input-group-addon" style="width: 100px">終了年月日</span>
+												<input id="prj_end"
+													   name="prj_end"
+													   class="form-control"
+													   type="text"
+													   style="width: 354px" 
+													   onclick="newDate('date_to');" 
+													   value="<?php echo $prj_end; ?>"/>
+											</div>
+											<script type="text/javascript">newDate("prj_end");</script>
+											
+											<div id="div_grp_con_end" class="input-group">
+												<span class="input-group-addon" style="width: 100px">調査次数</span>
+												<select id="prj_phs" 
+														name="prj_phs"
+														class="combobox input-large form-control" 
+														style="text-align: center; width: 354px">
+													<option value="<?php echo $prj_phs; ?>"><?php echo $prj_phs; ?></option>
+													<?php
+														for ($i = 1; $i <= 20; $i++) {
+															echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
+														}
+													?>
+												</select>
+											</div>
+										</div>
+									</div>
 								</div>
 							</td>
-							<td style="width: 100px">
-								<input id="btn-upload" 
-									   name="btn-upload"
-									   class="btn btn-md btn-success"
-									   type="submit"
-									   value="アップロード"
-									   onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w=600,target="project");'/>
-							</td>
-						</form>
-					</tr>
-				</table>
-			</div>
-			
-			<!-- Project view -->
-			<div class="row">
-				<form action="update_project.php" method="post">
-					<!-- Information about a user who registered this project -->
-					<table class='table table'>
-						<!------------------------
-						   Project Infrormation
-						------------------------->
-						<tr style="background-color: #343399; color: #ffffff">
-							<td>
-								<span class="glyphicon glyphicon-user" aria-hidden="true"> 登録者の情報</span>
-							</td>
-							<td style="color: red"><?php echo $err; ?></td>
-						</tr>
-						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>登録者</td>
-							<td><?php echo $prj_cby; ?></td>
-						</tr>
-						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>登録日時</td>
-							<td><?php echo $prj_cdt; ?></td>
 						</tr>
 					</table>
-					
-					<!-- Generic Information about the project -->
-					<table class='table table'>
-						<!------------------------
-						   Project Infrormation
-						------------------------->
-						<tr style="background-color: #343399; color: #ffffff">
+				</div>
+				<div id="tab_dsc" class="tab-pane fade">
+					<h4><span class="glyphicon glyphicon-list-alt" aria-hidden="true"> 説明記述</span></h4>
+					<table>
+						<tr>
 							<td colspan="2">
-								<span class="glyphicon glyphicon-info-sign" aria-hidden="true"> プロジェクト情報</span>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">概　要:</span>
+									<textarea id="prj_int"
+											  name="prj_int"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"><?php echo str_replace("<br />","",$prj_int); ?></textarea>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">調査原因:</span>
+									<textarea id="prj_cas"
+											  name="prj_cas"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"><?php echo str_replace("<br />","",$prj_cas); ?></textarea>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">特記事項:</span>
+									<textarea id="prj_dsc"
+											  name="prj_dsc"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"><?php echo str_replace("<br />","",$prj_dsc); ?></textarea>
+								</div>
 							</td>
 						</tr>
+					</table>
+				</div>
+			
+				<div id="tab_rep" class="tab-pane fade">
+					<h4><span class="glyphicon glyphicon-th" aria-hidden="true"> 報告書管理</span></h4>
+					<table>
 						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>課題名</td>
-							<td>
-								<input class="form-control"  type='text' name="title" value="<?php echo $prj_ttl; ?>">
-							</td>
-						</tr>
-						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>プロジェクト名</td>
-							<td>
-								<input class="form-control"  type='text' name="name" value="<?php echo $prj_nam; ?>">
-							</td>
-						</tr>
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>期間と次数</td>
-							<td>
-								<div class="row">
-									<div class="form-group col-lg-4">
-										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">開始:</span>
-											<input id="date_from"　
-												   name="date_from"
-												   class="form-control"
-												   type="text"
-												   placeholder="YYYY-MM-DD"
-												   value="<?php echo $prj_bgn;?>" 
-												   onclick="setSens('date_to', 'max');"
-												   readonly="true">
-										</div>
-									</div>
-									<div class="form-group col-lg-4">
-										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">終了:</span>
-											<input id="date_to"　
-												   name="date_to" 
-												   class="form-control"
-												   type="text"
-												   placeholder="YYYY-MM-DD"
-												   value="<?php echo $prj_end;?>" 
-												   onclick="setSens('date_from', 'min');"
-												   readonly="true"></div>
-										</div>
-									<div class="form-group col-lg-4">
-										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">調査次数:</span>
-											<select class="combobox input-large form-control" name="phase" style='text-align: center'>
-												<option value="<?php echo $prj_phs; ?>"><?php echo $prj_phs; ?></option>
-												<?php
-													for ($i = 1; $i <= 20; $i++) {
-														echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
-													}
-												?>
-											</select>
-										</div>
-									</div>
-							</div></td>
-						</tr>
-						
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>プロジェクト紹介</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='intro'><?php echo str_replace("<br />","",$prj_int); ?></textarea>
-							</td>
-						</tr>
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>調査原因</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='cause'><?php echo str_replace("<br />","",$prj_cas); ?></textarea>
-							</td>
-						</tr>
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>特記事項</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='desc'><?php echo str_replace("<br />","",$prj_dsc); ?></textarea>
-							</td>
-						</tr>
-						
-						<!-- Update button -->
-						<tr style="border: hidden; padding: 0px; margin: 0px; text-align: right;">
-							<td colspan="2">
-								<button class="btn btn-md btn-success" type="submit" value="registeration">
-									<span class="glyphicon glyphicon-refresh" aria-hidden="true"> プロジェクトの更新</span>
+							<td style="text-align: right;">
+								<button id="btn_add_prj_rep"
+										name="btn_add_prj_rep"
+										class="btn btn-sm btn-success"
+										type="submit">
+									<span class="glyphicon glyphicon-plus" aria-hidden="true"> 報告書の登録</span>
 								</button>
 							</td>
 						</tr>
+						<tr>
+							<td>調査報告書の情報</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<table id="tbl_rep" class="table table">
+									<tr style="text-align: center">
+										<td style="width: 300px; vertical-align: middle;">タイトル</td>
+										<td style="width: 100px; vertical-align: middle;">巻号</td>
+										<td style="width: 200px; vertical-align: middle;">シリーズ</td>
+										<td style="width: 150px; vertical-align: middle;">出版社</td>
+										<td style="width: 150px; vertical-align: middle;">出版年</td>
+										<td style="width: auto; vertical-align: middle;">備考</td>
+										<td></td>
+									</tr>
+									<tr>
+										<?php
+											$conn = pg_connect("host=".DBHOST.
+															" port=".DBPORT.
+															" dbname=".DBNAME.
+															" user=".DBUSER.
+															" password=".DBPASS)
+												 or die('Connection failed: ' . pg_last_error());
+											
+											// Find all members.
+											$sql_sel_rep = "SELECT * from report WHERE prj_id='".$uuid."' ORDER BY id";
+											
+											// Excute the query and get the result of query.
+											$result_select_rep = pg_query($conn, $sql_sel_rep);
+											if (!$result_select_rep) {
+												// Print the error messages and exit routine if error occors.
+												echo "An error occurred in DB query.\n";
+												exit;
+											}
+											// Fetch rows of projects.
+											$rows_rep_all = pg_fetch_all($result_select_rep);
+											foreach ($rows_rep_all as $row_rep){
+												$rep_uuid = $row_rep['uuid'];
+												$rep_ttl = $row_rep['title'];
+												$rep_vol = $row_rep['volume'];
+												$rep_num = $row_rep['edition'];
+												$rep_srs = $row_rep['series'];
+												$rep_pub = $row_rep['publisher'];
+												$rep_yer = $row_rep['year'];
+												$rep_dsc = $row_rep['descriptions'];
+												
+												echo "\t\t\t\t\t<tr style='text-align: center;'>\n";
+												echo "\t\t\t\t\t\t<td style='width: 300px; vertical-align: middle;'>".$rep_ttl."</td>\n";
+												if (!empty($rep_vol)) {
+													if (!empty($rep_num)){
+														echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>".$rep_vol."(".$rep_num.")</td>\n";
+													} else {
+														echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>".$rep_vol."</td>\n";
+													}
+												} else {
+													echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'></td>\n";
+												}
+												echo "\t\t\t\t\t\t<td style='width: 200px; vertical-align: middle;'>".$rep_srs."</td>\n";
+												echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: middle;'>".$rep_pub."</td>\n";
+												echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: middle;'>".$rep_yer."</td>\n";
+												echo "\t\t\t\t\t\t<td style='width: auto; vertical-align: middle;'>".$rep_dsc."</td>\n";
+												
+												// Control buttons
+												echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: top; text-align: right'>\n";
+												// Control menue
+												echo "\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
+												
+												// Create a button for deleting this material.
+												// This operation can be conducted only by Administrators.
+												echo "\t\t\t\t\t\t\t\t<button id='btn_del_rep'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
+												echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+												echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$uuid."','".$rep_uuid."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove' aria-hidden='true'> 報告書の削除</span>\n";
+												echo "\t\t\t\t\t\t\t\t</button>\n";
+												
+												// Create a button for moving to consolidation page.
+												echo "\t\t\t\t\t\t\t</div>\n";
+												echo "\t\t\t\t\t\t</td>";
+												echo "\t\t\t\t\t</tr>\n";
+											}
+											
+											// close the connection to DB.
+											pg_close($conn);
+										?>
+									</tr>
+								</table>
+							</td>
+						</tr>
 					</table>
-				</form>
-				
-				<!-- Information about survey reports which registered this project -->
-				<table id="tbl_rep" class="table table-strip">
-					<tr style="background-color: #343399; color: #ffffff">
-						<td colspan="6">
-							<span class="glyphicon glyphicon-th" aria-hidden="true"> 調査報告書の情報</span>
-						</td>
-						<td style="text-align: right;">
-							<button class="btn btn-md btn-success" type="submit" id="btn_add_prj_rep">新規登録</button>
-						</td>
-					</tr>
-					<tr style="text-align: center">
-						<td>タイトル</td>
-						<td>巻号</td>
-						<td>シリーズ</td>
-						<td>出版社</td>
-						<td>出版年</td>
-						<td>備考</td>
-						<td></td>
-					</tr>
-					<tr>
-						<?php
-							$conn = pg_connect("host=".DBHOST.
-											" port=".DBPORT.
-											" dbname=".DBNAME.
-											" user=".DBUSER.
-											" password=".DBPASS)
-								 or die('Connection failed: ' . pg_last_error());
-							
-							// Find all members.
-							$sql_sel_rep = "SELECT * from report WHERE prj_id='".$uuid."' ORDER BY id";
-							
-							// Excute the query and get the result of query.
-							$result_select_rep = pg_query($conn, $sql_sel_rep);
-							if (!$result_select_rep) {
-								// Print the error messages and exit routine if error occors.
-								echo "An error occurred in DB query.\n";
-								exit;
-							}
-							// Fetch rows of projects.
-							$rows_rep_all = pg_fetch_all($result_select_rep);
-							foreach ($rows_rep_all as $row_rep){
-								$rep_uuid = $row_rep['uuid'];
-								$rep_ttl = $row_rep['title'];
-								$rep_vol = $row_rep['volume'];
-								$rep_num = $row_rep['edition'];
-								$rep_srs = $row_rep['series'];
-								$rep_pub = $row_rep['publisher'];
-								$rep_yer = $row_rep['year'];
-								$rep_dsc = $row_rep['descriptions'];
-								
-								echo "\t\t\t\t\t<tr style='text-align: center;'>\n";
-								echo "\t\t\t\t\t\t<td style='width: 300px; vertical-align: middle;'>".$rep_ttl."</td>\n";
-								if (!empty($rep_vol)) {
-									if (!empty($rep_num)){
-										echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>".$rep_vol."(".$rep_num.")</td>\n";
-									} else {
-										echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'>".$rep_vol."</td>\n";
-									}
-								} else {
-									echo "\t\t\t\t\t\t<td style='width: 100px; vertical-align: middle;'></td>\n";
-								}
-								echo "\t\t\t\t\t\t<td style='width: 200px; vertical-align: middle;'>".$rep_srs."</td>\n";
-								echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: middle;'>".$rep_pub."</td>\n";
-								echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: middle;'>".$rep_yer."</td>\n";
-								echo "\t\t\t\t\t\t<td style='width: auto; vertical-align: middle;'>".$rep_dsc."</td>\n";
-								
-								// Control buttons
-								echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: top; text-align: right'>\n";
-								// Control menue
-								echo "\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
-								
-								// Create a button for deleting this material.
-								// This operation can be conducted only by Administrators.
-								echo "\t\t\t\t\t\t\t\t<button id='btn_del_rep'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$rep_uuid."','".$uuid."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t<span>報告書の削除</span>\n";
-								echo "\t\t\t\t\t\t\t\t</button>\n";
-								
-								// Create a button for moving to consolidation page.
-								echo "\t\t\t\t\t\t\t\t<button id='btn_edt_rep'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_rep'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\tonclick=editReport('".$rep_uuid."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t<span>書誌情報の編集</span>\n";
-								echo "\t\t\t\t\t\t\t\t</button>\n";
-								echo "\t\t\t\t\t\t\t</div>\n";
-								echo "\t\t\t\t\t\t</td>";
-								echo "\t\t\t\t\t</tr>\n";
-							}
-							
-							// close the connection to DB.
-							pg_close($conn);
-						?>
-					</tr>
-				</table>
-				
-				<!-- Information about a user who registered this project -->
-				<table id="tbl_mem" class="table table">
-					<tr style="background-color: #343399; color: #ffffff">
-						<td colspan="7">
-							<span class="glyphicon glyphicon-th" aria-hidden="true"> 登録者の情報</span>
-						</td>
-						<td style="text-align: right;">
-							<button class="btn btn-md btn-success" type="submit" id="btn_add_prj_mem">新規登録</button>
-						</td>
-					</tr>
-					
-					<!-- Trigger/Open The Modal -->
-					<tr>
-						<?php
-							$conn = pg_connect("host=".DBHOST.
-											" port=".DBPORT.
-											" dbname=".DBNAME.
-											" user=".DBUSER.
-											" password=".DBPASS)
-								 or die('Connection failed: ' . pg_last_error());
-								 
-							// For each row, HTML list is created and showed on browser.
-							// find the roles in the project.
-							// echo $sql_sel_mem_all;
-							$sql_sel_rol = "SELECT * FROM role WHERE prj_id='".$prj_uid."'";
-							$sql_res_rol = pg_query($conn, $sql_sel_rol);
-							
-							// Fetch rows of projects. 
-							$rol_rows = pg_fetch_all($sql_res_rol);
-							
-							if (!empty($rol_rows)) {
-								foreach ($rol_rows as $rol_row){
-									// Get a value in each field.
-									$mem_uid = $rol_row['mem_id'];		// Project name
-									$rol_bgn = $rol_row['beginning'];	// The date of the project begining.
-									$rol_end = $rol_row['ending'];		// The date of the project ending.
-									$rol_rol = $rol_row['rolename'];	// The phase for the continuous project.
-									
-									// Find the member.
-									$sql_sel_mem = "SELECT * FROM member WHERE uuid = '" . $mem_uid . "'";
-									$sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
-									while ($mem_row = pg_fetch_assoc($sql_res_mem)) {
-										$mem_ava = $mem_row['avatar'];
-										$mem_snm = $mem_row['surname'];
-										$mem_fnm = $mem_row['firstname'];
-										$mem_unm = $mem_row['username'];
-										$mem_utp = $mem_row['usertype'];
-									}
-									if($mem_ava != ""){
-										echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>";
-										echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
-										echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$mem_uid."' alt='img'/>\n";
-										echo "\t\t\t\t\t\t\t</a>\n";
-										echo "\t\t\t\t\t\t</td>\n";
-									} else {
-										echo "\t\t\t\t\t\t<td style='vertical-align: top; text-align: right;'>\n";
-										echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
-										echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>\n";
-										echo "\t\t\t\t\t\t\t</a>\n";
-										echo "\t\t\t\t\t\t</td>\n";
-									}
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $mem_snm. " " .$mem_fnm. "</td>\n";
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_bgn. "</td>\n";
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_end. "</td>\n";
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_rol. "</td>\n";
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $mem_unm. "</td>\n";
-									echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $mem_utp. "</td>";
-									
-									// Control buttons
-									echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: top; text-align: right'>\n";
-									// Control menue
-									echo "\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
-									
-									// Create a button for deleting this material.
-									// This operation can be conducted only by Administrators.
-									echo "\t\t\t\t\t\t\t\t<button id='btn_del_rep'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-									echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteMember('".$mem_uid."');>\n";
-									echo "\t\t\t\t\t\t\t\t\t<span>メンバーの削除</span>\n";
-									echo "\t\t\t\t\t\t\t\t</button>\n";
-									
-									// Create a button for moving to consolidation page.
-									echo "\t\t\t\t\t\t\t\t<button id='btn_edt_mem'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_mem'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-									echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-									echo "\t\t\t\t\t\t\t\t\t\tonclick=editMember('".$mem_uid."');>\n";
-									echo "\t\t\t\t\t\t\t\t\t<span>メンバーの編集</span>\n";
-									echo "\t\t\t\t\t\t\t\t</button>\n";
-									echo "\t\t\t\t\t\t\t</div>\n";
-									echo "\t\t\t\t\t\t</td>";
-									echo "\t\t\t\t\t</tr>\n";
-								}
-							}
-							// Close the connection.
-							pg_close($conn);
-						?>
-					</tr>
-				</table>
+				</div>
+
+				<div id="tab_mem" class="tab-pane fade">
+					<h4><span class="glyphicon glyphicon-th" aria-hidden="true"> メンバー管理</span></h4>
+					<table>
+						<tr>
+							<td style="text-align: right;">
+								<button id="btn_add_prj_mem"
+										name="btn_add_prj_mem"
+										class="btn btn-sm btn-success"
+										type="submit">
+									<span class="glyphicon glyphicon-plus" aria-hidden="true"> メンバーの登録</span>
+								</button><script type="text/javascript">newDate("rep_yer");</script>
+							</td>
+						</tr>
+						<tr>
+							<td>現在参加中のメンバー</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<table id="tbl_mem" class="table table">
+									<tr style="text-align: center">
+										<td></td>
+										<td style="width: 250px">所属組織</td>
+										<td style="width: 250px">所属部門</td>
+										<td style="width: 250px">氏名</td>
+										<td style="width: 150px">参画開始</td>
+										<td style="width: 150px">参画終了</td>
+										<td style="width: 200px">役割</td>
+										<td style="width: 250px">ユーザー名</td>
+										<td></td>
+									</tr>
+									<tr style="text-align: center">
+										<?php
+											$conn = pg_connect("host=".DBHOST.
+															" port=".DBPORT.
+															" dbname=".DBNAME.
+															" user=".DBUSER.
+															" password=".DBPASS)
+												 or die('Connection failed: ' . pg_last_error());
+												 
+											// For each row, HTML list is created and showed on browser.
+											// find the roles in the project.
+											// echo $sql_sel_mem_all;
+											$sql_sel_rol = "SELECT
+												B.prj_id,
+												C.name,
+												C.section,
+												B.mem_id,
+												A.surname,
+												A.firstname,
+												A.username,
+												A.avatar,
+												B.beginning,
+												B.ending,
+												B.rolename
+											FROM (member AS A LEFT JOIN role AS B ON B.mem_id = A.uuid)
+											LEFT JOIN organization AS C ON A.org_id = C.uuid 
+											WHERE B.prj_id='".$prj_id."'";
+
+											
+											//$sql_sel_rol = "SELECT * FROM role WHERE prj_id='".$prj_id."'";
+											$sql_res_rol = pg_query($conn, $sql_sel_rol);
+											
+											
+											// Fetch rows of projects. 
+											$rol_rows = pg_fetch_all($sql_res_rol);
+											
+											
+											if (!empty($rol_rows)) {
+												foreach ($rol_rows as $rol_row){
+													// Get a value in each field.
+													$mem_uid = $rol_row['mem_id'];		// Project name
+													$rol_bgn = $rol_row['beginning'];	// The date of the project begining.
+													$rol_end = $rol_row['ending'];		// The date of the project ending.
+													$rol_rol = $rol_row['rolename'];	// The phase for the continuous project.
+													$mem_ava = $rol_row['avatar'];
+													$mem_snm = $rol_row['surname'];
+													$mem_fnm = $rol_row['firstname'];
+													$mem_unm = $rol_row['username'];
+													$org_nam = $rol_row['name'];
+													$org_sec = $rol_row['section'];
+													
+													if($mem_ava != ""){
+														echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>";
+														echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
+														echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$mem_uid."' alt='img'/>\n";
+														echo "\t\t\t\t\t\t\t</a>\n";
+														echo "\t\t\t\t\t\t</td>\n";
+													} else {
+														echo "\t\t\t\t\t\t<td style='vertical-align: top; text-align: right;'>\n";
+														echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
+														echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>\n";
+														echo "\t\t\t\t\t\t\t</a>\n";
+														echo "\t\t\t\t\t\t</td>\n";
+													}
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $org_nam. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $org_sec. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $mem_snm. " " .$mem_fnm. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_bgn. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_end. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $rol_rol. "</td>\n";
+													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $mem_unm. "</td>\n";
+													
+													// Control buttons
+													echo "\t\t\t\t\t\t<td style='width: 150px; vertical-align: top; text-align: right'>\n";
+													// Control menue
+													echo "\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
+													
+													// Create a button for deleting this material.
+													// This operation can be conducted only by Administrators.
+													echo "\t\t\t\t\t\t\t\t<button id='btn_del_rep'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+													echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteMember('".$mem_uid."');>\n";
+													echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove' aria-hidden='true'> メンバーの削除</span>\n";
+													echo "\t\t\t\t\t\t\t\t</button>\n";
+													
+													// Create a button for moving to consolidation page.
+													echo "\t\t\t\t\t\t\t\t<button id='btn_edt_mem'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_mem'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+													echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+													echo "\t\t\t\t\t\t\t\t\t\tonclick=editMember('".$mem_uid."');>\n";
+													echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil' aria-hidden='true'> メンバーの編集</span>\n";
+													echo "\t\t\t\t\t\t\t\t</button>\n";
+													echo "\t\t\t\t\t\t\t</div>\n";
+													echo "\t\t\t\t\t\t</td>";
+													echo "\t\t\t\t\t</tr>\n";
+												}
+											}
+											// Close the connection.
+											pg_close($conn);
+										?>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+				</div>
 			</div>
-		</div>
+		
 		
 		<!----------------------------------------------
 		----   The Modal for adding project members ----
@@ -630,7 +741,7 @@
 			<div class="modal-content" style="width: 800px">
 				<span class="close">×</span>
 				<form action="insert_report.php" method="POST">
-					<input type="hidden" name= "prj_uuid" value="<?php echo $uuid;?>"/>
+					<input type="hidden" name= "prj_id" value="<?php echo $uuid;?>"/>
 					<table id="new_report" class="table table-striped" style="vertical-align: middle;">
 						<tr>
 							<td style="width: 150px; text-align: center">タイトル</td>
@@ -729,21 +840,127 @@
 				}
 			};
 			
-			function backToProject() {
-				window.location.href = "main.php";
+			function updateProject(prj_id,tmp_nam){
+				var prj_form = document.createElement("form");
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_img_fl = document.createElement("input");
+				inp_img_fl.setAttribute("type", "hidden");
+				inp_img_fl.setAttribute("id", "img_fl");
+				inp_img_fl.setAttribute("name", "img_fl");
+				inp_img_fl.setAttribute("value", tmp_nam+".jpg");
+				
+				var prj_ttl = document.getElementById("prj_ttl").value;
+				var inp_prj_ttl = document.createElement("input");
+				inp_prj_ttl.setAttribute("type", "hidden");
+				inp_prj_ttl.setAttribute("id", "prj_ttl");
+				inp_prj_ttl.setAttribute("name", "prj_ttl");
+				inp_prj_ttl.setAttribute("value", prj_ttl);
+				
+				var prj_nam = document.getElementById("prj_nam").value;
+				var inp_prj_nam = document.createElement("input");
+				inp_prj_nam.setAttribute("type", "hidden");
+				inp_prj_nam.setAttribute("id", "prj_nam");
+				inp_prj_nam.setAttribute("name", "prj_nam");
+				inp_prj_nam.setAttribute("value", prj_nam);
+				
+				var prj_bgn = document.getElementById("prj_bgn").value;
+				var inp_prj_bgn = document.createElement("input");
+				inp_prj_bgn.setAttribute("type", "hidden");
+				inp_prj_bgn.setAttribute("id", "prj_bgn");
+				inp_prj_bgn.setAttribute("name", "prj_bgn");
+				inp_prj_bgn.setAttribute("value", prj_bgn);
+				
+				var prj_end = document.getElementById("prj_end").value;
+				var inp_prj_end = document.createElement("input");
+				inp_prj_end.setAttribute("type", "hidden");
+				inp_prj_end.setAttribute("id", "prj_end");
+				inp_prj_end.setAttribute("name", "prj_end");
+				inp_prj_end.setAttribute("value", prj_end);
+				
+				var prj_phs = document.getElementById("prj_phs").value;
+				var inp_prj_phs = document.createElement("input");
+				inp_prj_phs.setAttribute("type", "hidden");
+				inp_prj_phs.setAttribute("id", "prj_phs");
+				inp_prj_phs.setAttribute("name", "prj_phs");
+				inp_prj_phs.setAttribute("value", prj_phs);
+				
+				var prj_int = document.getElementById("prj_int").value;
+				var inp_prj_int = document.createElement("input");
+				inp_prj_int.setAttribute("type", "hidden");
+				inp_prj_int.setAttribute("id", "prj_int");
+				inp_prj_int.setAttribute("name", "prj_int");
+				inp_prj_int.setAttribute("value", prj_int);
+				
+				var prj_cas = document.getElementById("prj_cas").value;
+				var inp_prj_cas = document.createElement("input");
+				inp_prj_cas.setAttribute("type", "hidden");
+				inp_prj_cas.setAttribute("id", "prj_cas");
+				inp_prj_cas.setAttribute("name", "prj_cas");
+				inp_prj_cas.setAttribute("value", prj_cas);
+				
+				var prj_dsc = document.getElementById("prj_dsc").value;
+				var inp_prj_dsc = document.createElement("input");
+				inp_prj_dsc.setAttribute("type", "hidden");
+				inp_prj_dsc.setAttribute("id", "prj_dsc");
+				inp_prj_dsc.setAttribute("name", "prj_dsc");
+				inp_prj_dsc.setAttribute("value", prj_dsc);
+				
+				prj_form.appendChild(inp_prj_id);
+				prj_form.appendChild(inp_img_fl);
+				prj_form.appendChild(inp_prj_ttl);
+				prj_form.appendChild(inp_prj_nam);
+				prj_form.appendChild(inp_prj_bgn);
+				prj_form.appendChild(inp_prj_end);
+				prj_form.appendChild(inp_prj_phs);
+				prj_form.appendChild(inp_prj_int);
+				prj_form.appendChild(inp_prj_cas);
+				prj_form.appendChild(inp_prj_dsc);
+				
+				prj_form.setAttribute("action", "update_project.php");
+				prj_form.setAttribute("method", "post");
+				prj_form.submit();
+				
 				return false;
 			}
 			
-			function deleteReport(uuid, prj_id) {
+			function deleteReport(prj_id, rep_id) {
 				var diag_del_rep = confirm("この報告書を削除しますか？");
 				if (diag_del_rep === true) {
-					// Send the member id to the PHP script to drop selected project from DB.
-					window.location.href = "delete_report.php?uuid=" + uuid + "&prj_id=" + prj_id;
+					
+					var rep_form = document.createElement("form");
+					document.body.appendChild(rep_form);
+					
+					var inp_prj_id = document.createElement("input");
+					inp_prj_id.setAttribute("type", "hidden");
+					inp_prj_id.setAttribute("id", "prj_id");
+					inp_prj_id.setAttribute("name", "prj_id");
+					inp_prj_id.setAttribute("value", prj_id);
+					
+					var inp_rep_id = document.createElement("input");
+					inp_rep_id.setAttribute("type", "hidden");
+					inp_rep_id.setAttribute("id", "rep_id");
+					inp_rep_id.setAttribute("name", "rep_id");
+					inp_rep_id.setAttribute("value", rep_id);
+					
+					rep_form.appendChild(inp_prj_id);
+					rep_form.appendChild(inp_rep_id);
+					
+					rep_form.setAttribute("action", "delete_report.php");
+					rep_form.setAttribute("method", "post");
+					rep_form.submit();
+					
+					return false;
 				}
 				return false;
 			}
 			
-			function backToProject() {
+			function backToMyPage() {
 				window.location.href = "main.php";
 				return false;
 			}

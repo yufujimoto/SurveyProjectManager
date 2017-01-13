@@ -1,37 +1,77 @@
 <?php
-	header("Content-Type: text/html; charset=UTF-8");
+	// Start session and unlock the session file.
+    session_start();
+    session_write_close();
 	
-	// Get DB connection information.
-	require "lib/config.php";
+	// Load external libraries.
+	require_once "lib/config.php";
+	require_once "lib/moveTo.php";
+	
+	// The page return to after the process.
+	$returnTo = "edit_project.php";
+	
+	// Create post data as the array.
+	$data = array(
+		'prj_id' => $_REQUEST['prj_id']
+	);
+	
+	echo $returnTo;
+	
+	// Get the project ids from previous page.
+	$prj_id = $_REQUEST['prj_id'];
+	$rep_id = $_REQUEST['rep_id'];
 	
 	// Establish the connection to DB.
-	$conn = pg_connect("host=".DBHOST.
-					   " port=".DBPORT.
-					   " dbname=".DBNAME.
-					   " user=".DBUSER.
-					   " password=".DBPASS)
-			or die('Connection failed: ' . pg_last_error());
+	$conn = pg_connect("host=".DBHOST."
+					   port=".DBPORT."
+					   dbname=".DBNAME."
+					   user=".DBUSER."
+					   password=".DBPASS);
 	
-	if (!$conn) {
-		echo "An error occurred in DB connection.\n";
-		exit;
+    // Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = array("err" => "DB Error:".pg_last_error());
+		
+		// Return to material page.
+		$data = array_merge($data, $err);
+		moveToLocal($returnTo, $data);
 	}
 	
-	// Get the project id post from previous page.
-	$prj_id = $_REQUEST['prj_id'];
-	$uuid = $_REQUEST['uuid'];
+	// Make a SQL query.
+	$sql_del_rep = "DELETE FROM report WHERE uuid='". $rep_id."'";
 	
 	try {
 		// Finally Delete the report.
-		$sql_delete_report = "DELETE FROM report WHERE uuid='". $uuid."'";
-		$sql_res_report = pg_query($conn, $sql_delete_report);
+		$sql_res_rep = pg_query($conn, $sql_del_rep);
+		
+		if (!$sql_res_rep) {
+			// Get the error message.
+			$err = array("err" => "DB Error: ".pg_last_error($conn));
+			
+			// Close the connection to DB.
+			pg_close($conn);
+			
+			// Return to material page.
+			$data = array_merge($data, $err);
+			moveToLocal($returnTo, $data);
+		}
+		
+		// close the connection to DB.
+		pg_close($conn);
+		
 	} catch (Exception $e) {
-		$err = "Caught exception: ";
-		header("Location: edit_project.php?uuid=".$prj_id."&err=".$err);
+		// Get error message
+		$err = array("err" => "Caught exception: ".$e);
+		
+		// Close the connection to DB.
+		pg_close($conn);
+		
+		// Return to material page.
+		$data = array_merge($data, $err);
+		moveToLocal($returnTo, $data);
 	}
-	// close the connection to DB.
-	pg_close($conn);
 	
-	// Return to home.
-	header("Location: edit_project.php?uuid=".$prj_id);
+	// Return to material page.
+	moveToLocal($returnTo, $data);
 ?>

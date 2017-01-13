@@ -164,9 +164,9 @@ CREATE TABLE consolidation (
  name VARCHAR(255),
  faceimage BYTEA,
  geographic_name VARCHAR(255),
- geographic_extent geometry(Polygon,4612),
+ geographic_extent geometry(MultiPolygon,4612),
  represented_point geometry(Point,4612),
- estimated_area geometry(Polygon,4612),
+ estimated_area geometry(MultiPolygon,4612),
  estimated_period_beginning VARCHAR(255),
  estimated_period_ending VARCHAR(255),
  descriptions TEXT

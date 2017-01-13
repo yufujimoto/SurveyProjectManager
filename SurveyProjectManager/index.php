@@ -68,7 +68,6 @@
 						fwrite($connfigfile, "\t".'define("SRID", "'.$srid.'");'."\n");
 						fwrite($connfigfile, "\t".'define("FULLPATH", "'.$fullpath.'");'."\n");
 						fwrite($connfigfile, '?>');
-						
 						fclose($connfigfile);
 						
 						// Create the temporal first user for setting up this system.
@@ -84,13 +83,14 @@
 					$errMsg = "データベースの設定情報を確認してください";
 				}
 			} else {
-					$errMsg = "ユーザー名とパスワードの設定情報を確認してください";
+				$errMsg = "ユーザー名とパスワードの設定情報を確認してください";
 			}
 		}
 	}
 ?>
 <html lang="ja">
     <head>
+		<title>データベース設定</title>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -100,7 +100,6 @@
 		<meta name="description" content="">
 		<meta name="Yu Fujimoto" content="">
 		<link rel="icon" href="../favicon.ico">
-		<title>メンバーログイン</title>
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
 		<link href="../theme.css" rel="stylesheet">

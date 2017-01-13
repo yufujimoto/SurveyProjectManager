@@ -1,4 +1,8 @@
 <?php
+	// Start the session.
+	session_start();
+	session_write_close();
+	
 	require "lib/guid.php";
 	require "lib/password.php";
 	require "lib/config.php";
@@ -19,8 +23,8 @@
     $prj_id = $_REQUEST['prj_id'];
     $con_id = $_REQUEST['con_id'];
     $mat_id = $_REQUEST['mat_id'];
-    $dmg_uid = str_replace("''","NULL","'".$_REQUEST['uuid']."'");
-    $dmg_dsc = str_replace("''","NULL","'".$_REQUEST['dsc']."'");
+    $dmg_uid = str_replace("''","NULL","'".$_REQUEST['img_id']."'");
+    $dmg_dsc = str_replace("''","NULL","'".$_REQUEST['img_dsc']."'");
     
     try{
         // Update existing record.
@@ -53,9 +57,33 @@
         //header("Location: update_material.php?uuid=".$mat_id."&prj_id=".$prj_id."&con_id=".$con_id."&err=".$err);
         echo "b";
     }
-
+	
+	// Close the connection
     pg_close($conn);
-    
-    // Back to report page without error messages.
-    header("Location: edit_material.php?uuid=".$mat_id."&prj_id=".$prj_id."&con_id=".$con_id."&err=".$err);
+	
+    // Get the URL with protocol return to. 
+	$url = (empty($_SERVER["HTTPS"]) ? "http://" : "https://").$_SERVER["HTTP_HOST"].FULLPATH."/edit_material.php";
+	
+	// Create post data as the array.
+	$data = array(
+		'prj_id' => $_REQUEST['prj_id'],
+		'con_id' => $_REQUEST['con_id'],
+		'mat_id' => $_REQUEST['mat_id']
+	);
+	
+	// Use key 'http' even if you send the request to https://...
+	$options = array(
+		'http' => array(
+			'header'=> 'Cookie: '.$_SERVER['HTTP_COOKIE']."\r\n",
+			'method'  => 'POST',
+			'content' => http_build_query($data)
+		)
+	);
+	
+	// Convert array to stream_context. 
+	$context  = stream_context_create($options);
+	
+	// Open the URL with file get contents function.
+	$result = file_get_contents($url, false, $context);
+	echo $result;
 ?>

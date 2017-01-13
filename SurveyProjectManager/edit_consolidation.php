@@ -1,6 +1,4 @@
 <?php
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Start the session.
     session_start();
     
@@ -21,9 +19,70 @@
 	// Get parameters from post.
 	$err = $_REQUEST['err'];
 	$prj_id = $_REQUEST['prj_id'];
+	$con_id = $_REQUEST['con_id'];
 	
 	// Generate unique ID for saving temporal files.
 	$tmp_nam = uniqid($_SESSION["USERNAME"]."_");
+	
+	// Connect to the DB.
+	$conn = pg_connect(
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS);
+	
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
+	// Create a SQL query string.
+	$sql_sel_con = "SELECT
+		name,
+		faceimage,
+		geographic_name,
+		geographic_extent,
+		ST_X(represented_point) as lon,
+		ST_Y(represented_point) as lat,
+		estimated_area,
+		estimated_period_beginning,
+		estimated_period_ending,
+		descriptions
+		FROM consolidation WHERE uuid = '".$con_id."'";
+	
+	// Excute the query and get the result of query.
+	$sql_res_con = pg_query($conn, $sql_sel_con);
+	if (!$sql_res_con) {
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
+	while ($con_row = pg_fetch_assoc($sql_res_con)) {
+		$con_nam = $con_row['name'];
+		$con_img = $con_row['faceimage'];
+		$con_add = $con_row['geographic_name'];
+		$con_ext = $con_row['geographic_extent'];
+		$con_lat = $con_row['lat'];
+		$con_lon = $con_row['lon'];
+		$con_est = $con_row['estimated_area'];
+		$con_bgn = $con_row['estimated_period_beginning'];
+		$con_end = $con_row['estimated_period_ending'];
+		$con_dsc = $con_row['descriptions'];
+    }
+	
+	
+	// close the connection to DB.
+	pg_close($conn);
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -45,7 +104,8 @@
 		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
 		\n
 		<script src="../bootstrap/js/bootstrap.js"></script>
-		<script src="../bootstrap/js/bootstrap.min.js"></script>
+		<script src=// Generate unique ID for saving temporal files.
+	$tmp_nam = uniqid($_SESSION["USERNAME"]."_");"../bootstrap/js/bootstrap.min.js"></script>
 		
 		<!-- Import external scripts for generating image -->
 		<script type="text/javascript" src="lib/refreshImage.js"></script>
@@ -135,10 +195,10 @@
 								<div class="btn-group">
 									<button id="btn_add_mat"
 											name="btn_add_mat"
-											class="btn btn-sm btn-success"
+											class="btn btn-sm btn-primary"
 											type="submit" value="add_material"
-											onclick='addNewConsolidation("<?php echo $prj_id; ?>","<?php echo $tmp_nam; ?>");'>
-										<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新規統合体の追加</span>
+											onclick='updateConsolidation("<?php echo $prj_id; ?>","<?php echo $con_id; ?>","<?php echo $tmp_nam; ?>");'>
+										<span class="glyphicon glyphicon-save" aria-hidden="true"> 上書き保存</span>
 									</button>
 									<!--
 									<button id="btn_imp_mat"
@@ -183,7 +243,7 @@
 									border:
 									hidden;
 									border-color: #999999;"
-									src="avatar_uploaded.php?target=consolidation&hight=400&width=600">
+									src="avatar_uploaded.php?target=consolidation&height=300&width=500&img_id=<?php echo $con_id; ?>">
 							</iframe>
 							<form id="form_avatar" class="form-inline" method="post" enctype="multipart/form-data">
 								<div class="form-group">
@@ -208,7 +268,7 @@
 								<div class="form-group">
 									<input id="btn-upload"
 										   name="btn-upload"
-										   class="btn btn-md btn-success"
+										   class="btn btn-md btn-success"width=500
 										   type="submit"
 										   value="アップロード"
 										   style="width: 100px"
@@ -225,7 +285,9 @@
 										   name="con_nam"
 										   class="form-control"
 										   type="text"
-										   style="width: 454px"/>
+										   style="width: 454px;"
+										   value="<?php echo $con_nam; ?>"
+										   />
 								</div>
 								<div id="div_con_bgn" class="input-group">
 									<span class="input-group-addon" style="width: 100px">存在期間:</span>
@@ -236,7 +298,8 @@
 												   name="con_bgn"
 												   class="form-control"
 												   type="text"
-												   style="width: 400px"/>
+												   style="width: 400px"
+												   value="<?php echo $con_bgn; ?>"/>
 										</div>
 										<div id="div_grp_con_end" class="input-group">
 											<span class="input-group-addon" style="width: 50px">終了</span>
@@ -244,7 +307,8 @@
 												   name="con_end"
 												   class="form-control"
 												   type="text"
-												   style="width: 400px"/>
+												   style="width: 400px"
+												   value="<?php echo $con_end; ?>"/>
 											</div>
 									</div>
 								</div>
@@ -256,7 +320,7 @@
 											  style="resize: none;
 													 width: 454px;
 													 text-align: left"
-											  rows="10"></textarea>
+											  rows="10"><?php echo str_replace("<br />","",$con_dsc); ?></textarea>
 								</div>
 							</div>
 						</td>
@@ -269,20 +333,32 @@
 									<input id="con_add"
 										   name="con_add"
 										   class="form-control"
-										   type="text" />
+										   type="text"
+										   value="<?php echo $con_add; ?>"/>
 							</div>
 						</td>
 						<td>
 							<div class="form-group col-lg-4">
 								<div id="div_con_crd" class="input-group">
 									<span class="input-group-addon" id="basic-addon1">緯度:</span>
-									<input id="con_lat" name="con_lat" class="form-control" type="text" placeholder="DD.DDDDDD"/>
+									<input
+										   id="con_lat"
+										   name="con_lat"
+										   class="form-control"
+										   type="text"
+										   placeholder="DD.DDDDDD"
+										   value="<?php echo $con_lat; ?>"/>
 								</div>
 							</div>
 							<div class="form-group col-lg-4">
 								<div class="input-group">
 									<span class="input-group-addon" id="basic-addon1">経度:</span>
-									<input id="con_lon" name="con_lon" class="form-control" type="text" placeholder="DDD.DDDDDD"/>
+									<input id="con_lon"
+										   name="con_lon"
+										   class="form-control"
+										   type="text"
+										   placeholder="DDD.DDDDDD"
+										   value="<?php echo $con_lon; ?>"/>
 								</div>
 							</div>
 						</td>
@@ -420,7 +496,7 @@
 			est_form.target = "ifr_est_geo";
 		}
 		
-		function addNewConsolidation(prj_id, tmp_nam){
+		function updateConsolidation(prj_id, con_id, tmp_nam){
 			var con_form = document.createElement("form");
 			
 			var inp_prj_id = document.createElement("input");
@@ -428,6 +504,12 @@
 			inp_prj_id.setAttribute("id", "prj_id");
 			inp_prj_id.setAttribute("name", "prj_id");
 			inp_prj_id.setAttribute("value", prj_id);
+			
+			var inp_con_id = document.createElement("input");
+			inp_con_id.setAttribute("type", "hidden");
+			inp_con_id.setAttribute("id", "con_id");
+			inp_con_id.setAttribute("name", "con_id");
+			inp_con_id.setAttribute("value", con_id);
 			
 			var inp_img_fl = document.createElement("input");
 			inp_img_fl.setAttribute("type", "hidden");
@@ -497,6 +579,7 @@
 			inp_con_est.setAttribute("value", tmp_nam + "_est.wkt");
 			
 			con_form.appendChild(inp_prj_id);
+			con_form.appendChild(inp_con_id);
 			con_form.appendChild(inp_img_fl);
 			con_form.appendChild(inp_con_nam);
 			con_form.appendChild(inp_con_bgn);
@@ -508,7 +591,7 @@
 			con_form.appendChild(inp_con_ext);
 			con_form.appendChild(inp_con_est);
 			
-			con_form.setAttribute("action", "insert_consolidation.php");
+			con_form.setAttribute("action", "update_consolidation.php");
 			con_form.setAttribute("method", "post");
 			con_form.submit();
 			

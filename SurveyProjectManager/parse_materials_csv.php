@@ -1,16 +1,6 @@
 <?php
 	// Start the session.
     session_start();
-    
-    // Check session status.
-    if (!isset($_SESSION["USERNAME"])) {
-      header("Location: logout.php");
-      exit;
-    }
-	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
@@ -39,8 +29,8 @@
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
+		
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 	</head>
@@ -62,10 +52,10 @@
                 // change the permission of the file.
                 chmod($csv_file, 0777);
                 echo "<p>CSV file is now uploading...</p>";
+                
                 // Initialize variables.
                 $cnt_rows = 1;
                 $len_cols = 0;
-                
                 $headers = array();
                 $rel_from = array();
                 $rel_to = array();
@@ -74,7 +64,6 @@
                 if (($handle = fopen($csv_file, "r")) !== FALSE) {
                     // Reload parent frame.
                     echo "<p>Now Uploading... Please wait for a minutes. It may take long time.</p>";
-                    echo "<script type='text/javascript'>window.parent.location.reload()</script>";
                 
                     // Read a line of the uploaded csv file. Maximum length of the line is limitted to 10,000.
                     echo "<table class='table table-striped'>";
@@ -276,7 +265,5 @@
                     pg_close($conn);
                 }
             }
-        } else {
-            echo "<p></p>";
         }
     ?>

@@ -1,22 +1,23 @@
 <?php
+	header("Content-Type: text/html; charset=UTF-8");
+	
 	// Start the session.
-    session_start();
-    
-    // Check session status.
-    if (!isset($_SESSION["USERNAME"])) {
-      header("Location: logout.php");
-      exit;
-    }
+	session_cache_limiter("private_no_expire");
+	session_start();
+	
+	// Check session status.
+	if (!isset($_SESSION["USERNAME"])) {
+		header("Location: logout.php");
+		exit;
+	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
-	$prj_id= $_REQUEST['uuid'];
+	$prj_id= $_REQUEST['prj_id'];
 	
 	// Connect to the DB.
 	$conn = pg_connect(
@@ -24,29 +25,40 @@
 				" port=".DBPORT.
 				" dbname=".DBNAME.
 				" user=".DBUSER.
-				" password=".DBPASS)
-			or die('Connection failed: ' . pg_last_error());
+				" password=".DBPASS);
 	
-	// Get a list of registered project.
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
 	// Create a SQL query string.
 	$sql_sel_con = "SELECT * FROM consolidation WHERE prj_id = '".$prj_id."' ORDER by id";
 	
 	// Excute the query and get the result of query.
-	$result_select_con = pg_query($conn, $sql_sel_con);
-	if (!$result_select_con) {
-		// Print the error messages and exit routine if error occors.
-		echo "An error occurred in DB query.\n";
+	$sql_res_con = pg_query($conn, $sql_sel_con);
+	if (!$sql_res_con) {
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
 		exit;
 	}
 	
 	// Fetch rows of projects. 
-	$rows_consolidation = pg_fetch_all($result_select_con);
-	$row_cnt = 0 + intval(pg_num_rows($result_select_con));
+	$rows_con = pg_fetch_all($sql_res_con);
+	$row_cnt = 0 + intval(pg_num_rows($sql_res_con));
 ?>
 <!DOCTYPE html>
 <html lang="ja">
 	<head>
-		<title>Material</title>
+		<title>Consolidation</title>
 		
 		<meta charset="utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -60,8 +72,8 @@
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
+		
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -167,7 +179,7 @@
 				<table id="consolidation" class="table table-striped">
 					<?php
 						// For each row, HTML list is created and showed on browser.
-						foreach ($rows_consolidation as $row){
+						foreach ($rows_con as $row){
 							// Get a value in each field.
 							$con_uuid = $row['uuid'];
 							$con_nam = $row['name'];
@@ -204,7 +216,7 @@
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToEditConsolidation('".$con_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=editConsolidation('".$prj_id."','".$con_uuid."');>\n";
 							echo "\t\t\t\t\t\t\t\t\t<span>統合体の編集</span>\n";
 							echo "\t\t\t\t\t\t\t\t</button>\n";
 							
@@ -224,11 +236,11 @@
 							// Create a thumbnail image container.
 							echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
 							if($con_fim != ""){
-								echo "\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$con_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t<a href='edit_consolidation.php?uuid=" .$con_uuid. "'>\n";
 								echo "\t\t\t\t\t\t\t\t<img height=200 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 							} else {
-								echo "\t\t\t\t\t\t\t<<a href='project_consolidations_view.php?uuid=" .$con_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t<<a href='edit_consolidation.php?uuid=" .$con_uuid. "'>\n";
 								echo "\t\t\t\t\t\t\t\t<img height=200 src='images/noimage.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</a>\n";
 							}
@@ -252,26 +264,108 @@
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
-			function backToMyPage(uuid) {
-				window.location.href = "main.php?uuid=" + uuid;
+			function backToMyPage() {
+				window.location.href = "main.php";
 				return false;
 			}
 			
-			function addNewConsolidation(uuid) {
-				window.location.href = "add_consolidation.php?uuid=" + uuid;
+			function addNewConsolidation(prj_id) {
+				var con_form = document.createElement("form");
+				document.body.appendChild(con_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				con_form.appendChild(inp_prj_id);
+				
+				con_form.setAttribute("action", "add_consolidation.php");
+				con_form.setAttribute("method", "post");
+				con_form.submit();
+				
+				return false;
+			}
+			
+			function editConsolidation(prj_id, con_id){
+				var con_form = document.createElement("form");
+				document.body.appendChild(con_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				con_form.appendChild(inp_prj_id);
+				con_form.appendChild(inp_con_id);
+				
+				con_form.setAttribute("action", "edit_consolidation.php");
+				con_form.setAttribute("method", "post");
+				con_form.submit();
+				
 				return false;
 			}
 			
 			function moveToMaterials(prj_id, con_id){
-				window.location.href = "material.php?uuid=" + con_id + "&prj_id=" + prj_id;
+				var con_form = document.createElement("form");
+				document.body.appendChild(con_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				con_form.appendChild(inp_prj_id);
+				con_form.appendChild(inp_con_id);
+				
+				con_form.setAttribute("action", "material.php");
+				con_form.setAttribute("method", "post");
+				con_form.submit();
+				
 				return false;
 			}
 			
 			function deleteConsolidation(prj_id, con_id) {
 				var diag_del_con = confirm("この統合体を削除しますか？");
 				if (diag_del_con === true) {
-					// Send the member id to the PHP script to drop selected project from DB.
-					window.location.href = "delete_consolidation.php?uuid=" + con_id + "&prj_id=" + prj_id;
+					var con_form = document.createElement("form");
+					document.body.appendChild(con_form);
+					
+					var inp_prj_id = document.createElement("input");
+					inp_prj_id.setAttribute("type", "hidden");
+					inp_prj_id.setAttribute("id", "prj_id");
+					inp_prj_id.setAttribute("name", "prj_id");
+					inp_prj_id.setAttribute("value", prj_id);
+					
+					var inp_con_id = document.createElement("input");
+					inp_con_id.setAttribute("type", "hidden");
+					inp_con_id.setAttribute("id", "con_id");
+					inp_con_id.setAttribute("name", "con_id");
+					inp_con_id.setAttribute("value", con_id);
+					
+					con_form.appendChild(inp_prj_id);
+					con_form.appendChild(inp_con_id);
+					
+					con_form.setAttribute("action", "delete_consolidation.php");
+					con_form.setAttribute("method", "post");
+					con_form.submit();
+					
+					return false;
 				}
 			}
 		</script>

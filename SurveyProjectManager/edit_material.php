@@ -1,4 +1,6 @@
 <?php
+	header("Content-Type: text/html; charset=UTF-8");
+	
 	// Start the session.
 	session_start();
 	
@@ -9,19 +11,15 @@
 	}
 	
 	// Load external libraries.
-	require "lib/guid.php";
-	require "lib/config.php";
+	require_once "lib/guid.php";
+	require_once "lib/config.php";
 	require_once "lib/tinymce/plugins/jbimages/config.php";
-	
-	define('TXT_IMG_PATH', '/project/SurveyProjectManager/uploads/hoge');
-	
-	header("Content-Type: text/html; charset=UTF-8");
 	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
 	$prj_id= $_REQUEST['prj_id'];
 	$con_id= $_REQUEST['con_id'];
-	$mat_id= $_REQUEST['uuid'];
+	$mat_id= $_REQUEST['mat_id'];
 	
 	// Connect to the DB.
 	$conn = pg_connect(
@@ -29,28 +27,39 @@
 				" port=".DBPORT.
 				" dbname=".DBNAME.
 				" user=".DBUSER.
-				" password=".DBPASS)
-			or die('Connection failed: ' . pg_last_error());
+				" password=".DBPASS);
 	
-	// Get a list of registered project.
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
 	// Create a SQL query string.
 	$sql_sel_mat = "SELECT
-							uuid,
-							name,
-							estimated_period_beginning,
-							estimated_period_ending,
-							represented_point,
-							path,
-							area,
-							material_number,
-							descriptions
-							FROM material WHERE uuid = '".$mat_id."'";
+		uuid,
+		name,
+		estimated_period_beginning,
+		estimated_period_ending,
+		represented_point,
+		path,
+		area,
+		material_number,
+		descriptions
+		FROM material WHERE uuid = '".$mat_id."'";
 	
 	// Excute the query and get the result of query.
 	$sql_res_mat = pg_query($conn, $sql_sel_mat);
 	if (!$sql_res_mat) {
-		// Print the error messages and exit routine if error occors.
-		echo "An error occurred in DB query.\n";
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
 		exit;
 	}
 	
@@ -79,8 +88,7 @@
 		<link href="lib/modal.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -178,8 +186,8 @@
 														"<?php echo $prj_id; ?>",
 														"<?php echo $con_id; ?>",
 														"<?php echo $mat_id; ?>"
-									);'>
-									<span>上書き保存</span>
+										);'>
+										<span class="glyphicon glyphicon-save" aria-hidden="true"> 上書き保存</span>
 									</button>
 									<!--
 									<button id="btn_imp_mat"
@@ -213,7 +221,7 @@
 			<!-- Contents -->
 			<!-- Consolidation list -->
 			<div class="row">
-				<table id="tbl_rep" class="table table">
+				<table id="tbl_mat" class="table table">
 					<tr style='text-align: left;'>
 						<?php
 							// For each row, HTML list is created and showed on browser.
@@ -229,17 +237,20 @@
 								$mat_dsc = $row_mat['descriptions'];
 								
 								$sql_sel_mat_add = "SELECT
-														uuid,
-														key,
-														value,
-														type
-														FROM additional_information WHERE mat_id = '".$mat_id."'";
+									uuid,
+									key,
+									value,
+									type
+									FROM additional_information WHERE mat_id = '".$mat_id."' ORDER BY id";
 								
 								// Excute the query and get the result of query.
 								$sql_res_mat_add = pg_query($conn, $sql_sel_mat_add);
 								if (!$sql_res_mat_add) {
-									// Print the error messages and exit routine if error occors.
-									echo "An error occurred in DB query.\n";
+									// Get the error message.
+									$err = "DB Error: ".pg_last_error($conn);
+									
+									// Move to Main Page.
+									header("Location: main.php?err=".$err);
 									exit;
 								}
 								// Get additional Attributes of the material
@@ -249,73 +260,73 @@
 								$tbl_mat_id = "tbl_img_".$mat_id;
 							}
 						?>
-						<td style='vertical-align: top; width: 500px'>
-							<h4>基本属性</h4>
-							<div class="input-group">
-								<span class="input-group-addon" id="basic-addon1" style="width: 100px">資料番号:</span>
-								<input class="form-control"
-											   type="text"
-											   name="inp_mat_num"
-											   id="inp_mat_num"
-											   style="width: 354px"
-											   value="<?php echo $mat_mnm; ?>"/>
-							</div>
-							<div class="input-group">
-								<span class="input-group-addon" id="basic-addon1" style="width: 100px">資料名:</span>
-								<input class="form-control"
-											   type="text"
-											   name="inp_mat_nam"
-											   id="inp_mat_nam"
-											   style="width: 354px"
-											   value="<?php echo $mat_nam; ?>"/>
-							</div>
-							<div class="input-group">
-								<span class="input-group-addon" id="basic-addon1" style="width: 100px">存在期間:</span>
-								<div class="input-group-vertical">
-									<div class="input-group">
-										<span class="input-group-addon" id="basic-addon1" style="width: 50px">開始</span>
-										<input class="form-control"
-													   type="text"
-													   name="inp_mat_bgn"
-													   id="inp_mat_bgn"
-													   style="width: 300px"
-													   value="<?php echo $mat_est_bgn; ?>"/>
-									</div>
-									<div class="input-group">
-										<span class="input-group-addon" id="basic-addon1" style="width: 50px">終了</span>
-										<input class="form-control"
-													   type="text"
-													   name="inp_mat_end"
-													   id="inp_mat_end"
-													   style="width: 300px"
-													   value="<?php echo $mat_est_end; ?>"/>
+						<td id="td_mat_inf" style='vertical-align: top; width: 500px'>
+							<div id="mat_bsc_inf" name="mat_bsc_inf">
+								<h4>基本属性</h4>
+								<div id="mat_num" class="input-group">
+									<span class="input-group-addon" style="width: 100px">資料番号:</span>
+									<input class="form-control"
+												   type="text"
+												   name="inp_mat_num"
+												   style="width: 354px"
+												   value="<?php echo $mat_mnm; ?>"/>
+								</div>
+								<div id="mat_nam" class="input-group">
+									<span class="input-group-addon" style="width: 100px">資料名:</span>
+									<input class="form-control"
+												   type="text"
+												   name="inp_mat_nam"
+												   style="width: 354px"
+												   value="<?php echo $mat_nam; ?>"/>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 100px">存在期間:</span>
+									<div class="input-group-vertical">
+										<div id="mat_bgn" class="input-group">
+											<span class="input-group-addon" style="width: 50px">開始</span>
+											<input class="form-control"
+														   type="text"
+														   name="inp_mat_bgn"
+														   style="width: 300px"
+														   value="<?php echo $mat_est_bgn; ?>"/>
 										</div>
+										<div id="mat_end" class="input-group">
+											<span class="input-group-addon" style="width: 50px">終了</span>
+											<input class="form-control"
+														   type="text"
+														   name="inp_mat_end"
+														   style="width: 300px"
+														   value="<?php echo $mat_est_end; ?>"/>
+											</div>
+									</div>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 100px">備考</span>
+									<textarea id="mat_dsc"
+											  class='form-control'
+											  style='resize: none; width: 354px; text-align: left'rows='5'
+											  name='intro'><?php echo $mat_dsc; ?></textarea>
 								</div>
 							</div>
-							<div class="input-group">
-								<span class="input-group-addon" id="basic-addon1" style="width: 100px">備考</span>
-								<textarea id="inp_mat_dsc"
-										  class='form-control'
-										  style='resize: none; width: 354px; text-align: left'rows='5'
-										  name='intro'><?php echo $mat_dsc; ?></textarea>
-							</div>
-							<h4>付加属性</h4>
-								<?php
-									foreach ($rows_mat_add as $row_mat_add){
-										$mat_add_id = $row_mat_add['uuid'];
-										$mat_add_key = $row_mat_add['key'];
-										$mat_add_val = $row_mat_add['value'];
-										$mat_add_typ = $row_mat_add['type'];
-										
-										if($mat_add_key!="" or $mat_add_val!=""){
-											echo "\t\t\t\t\t\t\t\t<div class='input-group'>\n";
-											echo "\t\t\t\t\t\t\t\t\t<span class='input-group-addon' id='basic-addon1' style='width: 100px'>".$mat_add_key.":</span>\n";
-											echo "\t\t\t\t\t\t\t\t\t<input class='form-control' type='text' name='inp_mat_nam' id='inp_mat_nam' style='width: 354px' value='".$mat_add_val."'/>\n";
-											echo "\t\t\t\t\t\t\t\t</div>\n";
+							<div id="mat_add_inf" name="mat_add_inf">
+								<h4>付加属性</h4>
+									<?php
+										foreach ($rows_mat_add as $row_mat_add){
+											$mat_add_id = $row_mat_add['uuid'];
+											$mat_add_key = $row_mat_add['key'];
+											$mat_add_val = $row_mat_add['value'];
+											$mat_add_typ = $row_mat_add['type'];
+											
+											if($mat_add_key!="" or $mat_add_val!=""){
+												echo "\t\t\t\t\t\t\t\t<div id='$mat_add_id' class='input-group'>\n";
+												echo "\t\t\t\t\t\t\t\t\t<span class='input-group-addon' id='".$mat_add_key."' style='width: 100px'>".$mat_add_key.":</span>\n";
+												echo "\t\t\t\t\t\t\t\t\t<input class='form-control' type='text' name='inp_mat_nam' id='inp_mat_nam' style='width: 354px' value='".$mat_add_val."'/>\n";
+												echo "\t\t\t\t\t\t\t\t</div>\n";
+											}
 										}
-									}
-									
-								?>
+										
+									?>
+								</div>
 							</td>
 							<td>
 								<iframe
@@ -367,7 +378,7 @@
 												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('".$tbl_img_id."','".$img_id."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('tbl_img','".$prj_id."','".$con_id."','".$mat_id."','".$img_id."');>\n";
 												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t\t<span>図の削除</span>\n";
 												echo "\t\t\t\t\t\t\t\t\t\t\t\t\t</button>\n";
 												
@@ -416,7 +427,12 @@
 													   class="btn btn-md btn-success"
 													   type="submit"
 													   value="アップロード"
-													   onclick='addImageRow();'/>
+													   onclick='addImageRow(
+															"<?php echo $prj_id; ?>",
+															"<?php echo $con_id; ?>",
+															"<?php echo $mat_id; ?>",
+															"<?php echo $_SESSION['USERNAME']; ?>"
+														);'/>
 										</div>
 									</form>
 								</td>
@@ -427,13 +443,13 @@
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
-			function addImageRow(){
+			function addImageRow(prj_id, con_id, mat_id, uname){
 				var tbl_id="tbl_img";
 				var tbl_fig=document.getElementById(tbl_id);
 				var cnt_row=tbl_fig.rows.length;
 				
 				var row=tbl_fig.insertRow(cnt_row);
-				var row_id = guid();
+				var row_id = uname + "_" + guid();
 				
 				row.setAttribute("id", row_id);
 				
@@ -471,15 +487,6 @@
 				img_cll_lab.style.textAlign="center";
 				img_cll_lab.style.verticalAlign="middle";
 				
-				
-				var frm_img_frm = document.createElement("form");
-				frm_img_frm.className="form-horizontal";
-				
-				var img_lab_ipt=document.createElement("input");
-				frm_img_frm.appendChild(img_lab_ipt);
-				
-				img_cll_lab.appendChild(frm_img_frm);
-				
 				// Insert modified date & time.
 				var img_cll_dsc=row.insertCell(2);
 				img_cll_dsc.style.textAlign="center";
@@ -495,11 +502,6 @@
 				var frm_mat_ctr = document.createElement("div");
 				frm_mat_ctr.className="btn-group-vertical";
 				
-				// Create a button for editing the section.
-				var img_itm_edt=document.createElement("P");
-				img_itm_edt.id="btn_img_edt_"  + row_id;
-				img_itm_edt.name="btn_img_edt_"  + row_id;
-				
 				// Create a button for deleting the section.
 				var img_itm_dll=document.createElement("button");
 				img_itm_dll.className="btn btn-sm btn-danger";
@@ -507,44 +509,123 @@
 				img_itm_dll.id="btn_img_dll_"  + row_id;
 				img_itm_dll.name="btn_img_dll_" + row_id;
 				
-				// Define the function of deleting the section.
+				// Define the function of deleting the image.
 				var img_itm_dll_func = new Function("deleteRow('"+ tbl_id + "','" + row_id + "');");
 				img_itm_dll.onclick=img_itm_dll_func;
 				
+				// Create a button for editing the section.
+				var img_itm_smt=document.createElement("button");
+				img_itm_smt.className="btn btn-sm btn-primary";
+				img_itm_smt.type=type="submit";
+				img_itm_smt.id="btn_img_smt_"  + row_id;
+				img_itm_smt.name="btn_img_smt_"  + row_id;
+				
+				// Define the function of submitting the image.
+				var img_itm_smt_func = new Function("submitImage('"+ prj_id + "','" + con_id + "','" + mat_id + "','" + row_id + "');");
+				img_itm_smt.onclick=img_itm_smt_func;
+				
 				var spn_edt = document.createElement("span");
 				var spn_dll = document.createElement("span");
-				spn_edt.style.color="red";
-				spn_edt.innerHTML="未確定";
-				spn_dll.innerHTML="章の削除";
+				spn_edt.innerHTML="画像の登録";
+				spn_dll.innerHTML="画像の削除";
 				
-				img_itm_edt.appendChild(spn_edt);
+				img_itm_smt.appendChild(spn_edt);
 				img_itm_dll.appendChild(spn_dll);
-				frm_mat_ctr.appendChild(img_itm_edt);
 				frm_mat_ctr.appendChild(img_itm_dll);
+				frm_mat_ctr.appendChild(img_itm_smt);
 				img_cll_edt.appendChild(frm_mat_ctr);
 			}
 			
-			function deleteRow(tbl_id, row_id){
+			function deleteRow(tbl_id, prj_id, con_id, mat_id, img_id){
 				var tbl_mat=document.getElementById(tbl_id);
 				var row_num;
 				for (var i=1;i<tbl_mat.rows.length;i++){
-					if (tbl_mat.rows[i].id==row_id){
+					if (tbl_mat.rows[i].id==img_id){
 						row_num = i;
 					}
 				}
 				
-				var diag_del_con = confirm("この章を削除しますか？");
+				var diag_del_con = confirm("この画像を削除しますか？");
 				if (diag_del_con === true) {
-					// Send the member id to the PHP script to drop selected project from DB.
-					// window.location.href = "delete_consolidation.php?uuid=" + con_id + "&prj_id=" + prj_id;
-					
 					// Delete the row.
 					tbl_mat.deleteRow(row_num);
+					
+					var mat_form = document.createElement("form");
+					document.body.appendChild(mat_form);
+					
+					var inp_prj_id = document.createElement("input");
+					inp_prj_id.setAttribute("type", "hidden");
+					inp_prj_id.setAttribute("id", "prj_id");
+					inp_prj_id.setAttribute("name", "prj_id");
+					inp_prj_id.setAttribute("value", prj_id);
+					
+					var inp_con_id = document.createElement("input");
+					inp_con_id.setAttribute("type", "hidden");
+					inp_con_id.setAttribute("id", "con_id");
+					inp_con_id.setAttribute("name", "con_id");
+					inp_con_id.setAttribute("value", con_id);
+					
+					var inp_mat_id = document.createElement("input");
+					inp_mat_id.setAttribute("type", "hidden");
+					inp_mat_id.setAttribute("id", "mat_id");
+					inp_mat_id.setAttribute("name", "mat_id");
+					inp_mat_id.setAttribute("value", mat_id);
+					
+					var inp_img_id = document.createElement("input");
+					inp_img_id.setAttribute("type", "hidden");
+					inp_img_id.setAttribute("id", "img_id");
+					inp_img_id.setAttribute("name", "img_id");
+					inp_img_id.setAttribute("value", img_id);
+					
+					mat_form.appendChild(inp_prj_id);
+					mat_form.appendChild(inp_con_id);
+					mat_form.appendChild(inp_mat_id);
+					mat_form.appendChild(inp_img_id);
+					
+					mat_form.setAttribute("action", "delete_material_image.php");
+					mat_form.setAttribute("method", "post");
+					mat_form.submit();
 				}
 			}
 			
-			function updateMaterial(prj_id, rep_id, tbl_id){
-
+			function submitImage(prj_id, con_id, mat_id, img_id){
+				var mat_form = document.createElement("form");
+				document.body.appendChild(mat_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				var inp_mat_id = document.createElement("input");
+				inp_mat_id.setAttribute("type", "hidden");
+				inp_mat_id.setAttribute("id", "mat_id");
+				inp_mat_id.setAttribute("name", "mat_id");
+				inp_mat_id.setAttribute("value", mat_id);
+				
+				var inp_img_id = document.createElement("input");
+				inp_img_id.setAttribute("type", "hidden");
+				inp_img_id.setAttribute("id", "img_id");
+				inp_img_id.setAttribute("name", "img_id");
+				inp_img_id.setAttribute("value", img_id);
+				
+				mat_form.appendChild(inp_prj_id);
+				mat_form.appendChild(inp_con_id);
+				mat_form.appendChild(inp_mat_id);
+				mat_form.appendChild(inp_img_id);
+				
+				mat_form.setAttribute("action", "insert_material_image.php");
+				mat_form.setAttribute("method", "post");
+				mat_form.submit();
+				
+				return false;
 			}
 			
 			function showViewer(uuid){
@@ -567,18 +648,204 @@
 			}
 			
 			function updateImageDescription(prj_id, con_id, mat_id, img_id) {
+				var mat_form = document.createElement("form");
+				document.body.appendChild(mat_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				var inp_mat_id = document.createElement("input");
+				inp_mat_id.setAttribute("type", "hidden");
+				inp_mat_id.setAttribute("id", "mat_id");
+				inp_mat_id.setAttribute("name", "mat_id");
+				inp_mat_id.setAttribute("value", mat_id);
+				
+				var inp_img_id = document.createElement("input");
+				inp_img_id.setAttribute("type", "hidden");
+				inp_img_id.setAttribute("id", "img_id");
+				inp_img_id.setAttribute("name", "img_id");
+				inp_img_id.setAttribute("value", img_id);
+				
 				var mat_img_desc = document.getElementById('dsc_'+img_id).value;
-				window.location.href = "update_material_image.php?uuid=" + img_id + "&dsc=" + mat_img_desc + "&prj_id=" + prj_id + "&con_id=" + con_id + "&mat_id=" + mat_id;
+				var inp_mat_dsc = document.createElement("input");
+				inp_mat_dsc.setAttribute("type", "hidden");
+				inp_mat_dsc.setAttribute("id", "img_dsc");
+				inp_mat_dsc.setAttribute("name", "img_dsc");
+				inp_mat_dsc.setAttribute("value", mat_img_desc);
+				
+				mat_form.appendChild(inp_prj_id);
+				mat_form.appendChild(inp_con_id);
+				mat_form.appendChild(inp_mat_id);
+				mat_form.appendChild(inp_img_id);
+				mat_form.appendChild(inp_mat_dsc);
+				
+				mat_form.setAttribute("action", "update_material_image.php");
+				mat_form.setAttribute("method", "post");
+				mat_form.submit();
+				
 				return false;
 			}
 			
 			function backToMaterial(con_id, prj_id) {
-				window.location.href = "material.php?uuid=" + con_id + "&prj_id=" + prj_id;
+				var mat_form = document.createElement("form");
+				document.body.appendChild(mat_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				mat_form.appendChild(inp_prj_id);
+				mat_form.appendChild(inp_con_id);
+				
+				mat_form.setAttribute("action", "material.php");
+				mat_form.setAttribute("method", "post");
+				mat_form.submit();
+				
 				return false;
 			}
 			
 			function updateMeterial(prj_id, con_id, mat_id){
-				window.location.href = "update_material.php?uuid=" + mat_id + "&prj_id=" + prj_id + "&con_id=" + con_id;
+				// Get additional attribute.
+				var bsc_mat_keys = [];
+				var bsc_mat_vals = [];
+				var mat_num = document.getElementById("mat_num");
+				var mat_nam = document.getElementById("mat_nam");
+				var mat_bgn = document.getElementById("mat_bgn");
+				var mat_end = document.getElementById("mat_end");
+				var mat_dsc = document.getElementById("mat_dsc");
+				
+				for (i=0; i < mat_num.childNodes.length; i++) {
+					if(mat_num.childNodes[i].tagName === "INPUT"){
+						bsc_mat_keys[0] = "mat_num";
+						bsc_mat_vals[0] = mat_num.childNodes[i].value;
+					}
+				}
+				for (i=0; i < mat_nam.childNodes.length; i++) {
+					if(mat_nam.childNodes[i].tagName === "INPUT"){
+						bsc_mat_keys[1] = "mat_nam";
+						bsc_mat_vals[1] = mat_nam.childNodes[i].value;
+					}
+				}
+				for (i=0; i < mat_bgn.childNodes.length; i++) {
+					if(mat_bgn.childNodes[i].tagName === "INPUT"){
+						bsc_mat_keys[2] = "mat_bgn";
+						bsc_mat_vals[2] = mat_bgn.childNodes[i].value;
+					}
+				}
+				for (i=0; i < mat_end.childNodes.length; i++) {
+					if(mat_end.childNodes[i].tagName === "INPUT"){
+						bsc_mat_keys[3] = "mat_end";
+						bsc_mat_vals[3] = mat_end.childNodes[i].value;
+					}
+				}
+				bsc_mat_keys[4] = "mat_dsc";
+				bsc_mat_vals[4] = mat_dsc.value;
+				
+				var add_inf = document.getElementById("mat_add_inf");
+				var add_ord = 0;
+				var add_inf_ids = [];
+				var add_inf_keys = [];
+				var add_inf_vals = [];
+				
+				for (i=0; i < add_inf.childNodes.length; i++) {
+					elm_nam = add_inf.childNodes[i].tagName;
+					if (elm_nam === "DIV"){
+						add_inf_nd = add_inf.childNodes[i];
+						add_inf_ids[add_ord] = add_inf_nd.id;
+						
+						for (j=0; j < add_inf_nd.childNodes.length; j++) {
+							if(add_inf_nd.childNodes[j].tagName === "SPAN"){
+								add_inf_keys[add_ord] = add_inf_nd.childNodes[j].id;
+							} else if (add_inf_nd.childNodes[j].tagName === "INPUT"){
+								add_inf_vals[add_ord] = add_inf_nd.childNodes[j].value;
+							}
+						}
+						add_ord += 1;
+					}
+				}
+				
+				var mat_form = document.createElement("form");
+				document.body.appendChild(mat_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_con_id = document.createElement("input");
+				inp_con_id.setAttribute("type", "hidden");
+				inp_con_id.setAttribute("id", "con_id");
+				inp_con_id.setAttribute("name", "con_id");
+				inp_con_id.setAttribute("value", con_id);
+				
+				var inp_mat_id = document.createElement("input");
+				inp_mat_id.setAttribute("type", "hidden");
+				inp_mat_id.setAttribute("id", "mat_id");
+				inp_mat_id.setAttribute("name", "mat_id");
+				inp_mat_id.setAttribute("value", mat_id);
+				
+				var inp_bsc_inf_key = document.createElement("input");
+				inp_bsc_inf_key.setAttribute("type", "hidden");
+				inp_bsc_inf_key.setAttribute("id", "bsc_mat_keys");
+				inp_bsc_inf_key.setAttribute("name", "bsc_mat_keys");
+				inp_bsc_inf_key.setAttribute("value", bsc_mat_keys);
+				
+				var inp_bsc_inf_val = document.createElement("input");
+				inp_bsc_inf_val.setAttribute("type", "hidden");
+				inp_bsc_inf_val.setAttribute("id", "bsc_mat_vals");
+				inp_bsc_inf_val.setAttribute("name", "bsc_mat_vals");
+				inp_bsc_inf_val.setAttribute("value", bsc_mat_vals);
+				
+				var inp_add_inf_ids = document.createElement("input");
+				inp_add_inf_ids.setAttribute("type", "hidden");
+				inp_add_inf_ids.setAttribute("id", "add_inf_ids");
+				inp_add_inf_ids.setAttribute("name", "add_inf_ids");
+				inp_add_inf_ids.setAttribute("value", add_inf_ids);
+				
+				var inp_add_inf_key = document.createElement("input");
+				inp_add_inf_key.setAttribute("type", "hidden");
+				inp_add_inf_key.setAttribute("id", "add_inf_keys");
+				inp_add_inf_key.setAttribute("name", "add_inf_keys");
+				inp_add_inf_key.setAttribute("value", add_inf_keys);
+				
+				var inp_add_inf_val = document.createElement("input");
+				inp_add_inf_val.setAttribute("type", "hidden");
+				inp_add_inf_val.setAttribute("id", "add_inf_vals");
+				inp_add_inf_val.setAttribute("name", "add_inf_vals");
+				inp_add_inf_val.setAttribute("value", add_inf_vals);
+				
+				mat_form.appendChild(inp_prj_id);
+				mat_form.appendChild(inp_con_id);
+				mat_form.appendChild(inp_mat_id);
+				mat_form.appendChild(inp_add_inf_ids);
+				mat_form.appendChild(inp_add_inf_key);
+				mat_form.appendChild(inp_add_inf_val);
+				mat_form.appendChild(inp_bsc_inf_key);
+				mat_form.appendChild(inp_bsc_inf_val);
+				
+				mat_form.setAttribute("action", "update_material.php");
+				mat_form.setAttribute("method", "post");
+				mat_form.submit();
+				
+				return false;
 			}
 		</script>
 	</body>

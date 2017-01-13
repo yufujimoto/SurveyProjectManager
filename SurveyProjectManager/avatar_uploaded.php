@@ -11,7 +11,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 	</head>
-	<body style="margin: 0 auto;">
+	<body style="margin: 0 auto; background-color: black">
 	<?php
 		$desired_height = $_REQUEST["height"];
 		$desired_width = $_REQUEST["width"];
@@ -68,7 +68,7 @@
 					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
 					echo "src='avatar_project_face.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
 				} else {
-					echo "<img id='avatar' width=".$desired_width." height=".$desired_height."px style='margin:0px auto;display:block' ";
+					echo "<img id='avatar' height=300px style='margin:0px auto;display:block' ";
 					echo "src='images/noimage.jpg' alt='Uploaded image is invalid.'/>";
 				}
 			} elseif ($trgt=="member") {
@@ -79,14 +79,14 @@
 				// Initialize the default image file name.				
 				if($imgid != ""){
 					echo "<img id='avatar' height=".$desired_height." style='margin:0px auto;display:block' ";
-					echo "src='avatar_project_face.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
+					echo "src='avatar_consolidation_face.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
 				} else {
-					echo "<img id='avatar' height=400px width=600px style='margin:0px auto;display:block' ";
+					echo "<img id='avatar' height=300px style='margin:0px auto;display:block' ";
 					echo "src='images/noimage.jpg' alt='Uploaded image is invalid.'/>";
 				}
 			} else {
 				// Initialize the default image file name.
-				echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
+				echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block ' ";
 				echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
 			}
 		}

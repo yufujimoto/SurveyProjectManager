@@ -1,4 +1,8 @@
 <?php
+	// Start session and unlock the session file.
+    session_start();
+    session_write_close();
+	
     require "lib/guid.php";
     require "lib/password.php";
     require "lib/config.php";

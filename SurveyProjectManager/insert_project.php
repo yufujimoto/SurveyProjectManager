@@ -1,14 +1,18 @@
 <?php
+    // Start the session and unlock session file.
     session_start();
+    session_write_close();
     
-    // Check session status.
-    if (!isset($_SESSION["USERNAME"])) {
-      header("Location: logout.php");
-      exit;
-    }
-    
-    require 'lib/guid.php';
-    require "lib/config.php";
+	// Check session status.
+	if (!isset($_SESSION["USERNAME"])) {
+	  header("Location: logout.php");
+	  exit;
+	}
+	
+	// Load external libraries.
+	require_once "lib/guid.php";
+	require_once "lib/config.php";
+    require_once "lib/moveTo.php";
     
     // Connect to the Database.
     $conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS) or die('Connection failed: ' . pg_last_error());

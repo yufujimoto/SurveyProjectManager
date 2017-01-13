@@ -1,156 +1,194 @@
 <?php
-	require "lib/guid.php";
-	require "lib/password.php";
-	require "lib/config.php";
+	// Start the session and unlock session file.
+	session_cache_limiter("private_no_expire");
+	session_start();
+	session_write_close();
+	
+	// Check session status.
+	if (!isset($_SESSION["USERNAME"])) {
+	  header("Location: logout.php");
+	  exit;
+	}
+	
+	// Load external libraries.
+	require_once "lib/guid.php";
+	require_once "lib/config.php";
+	require_once "lib/moveTo.php";
+	
+	// The page return to after the process.
+	$returnTo = "report.php";
+	
+	// Create post data as the array.
+	$data = array(
+		'prj_id' => $_REQUEST['prj_id'],
+	);
 	
 	// Initialyze the error message.
 	$err = "";
 	
-	// Connect to the Database.
+	// Connect to the DB.
 	$conn = pg_connect(
 				"host=".DBHOST.
 				" port=".DBPORT.
 				" dbname=".DBNAME.
 				" user=".DBUSER.
-				" password=".DBPASS
-			) or die('Connection failed: ' . pg_last_error());
+				" password=".DBPASS);
 	
-	
-	// Count the number of sections.
-	$cnt_sec = count(explode(",",$_REQUEST['sec_uid']));
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = array("err" => "DB Error:".pg_last_error());
+		
+		// Return to material page.
+		$data = array_merge($data, $err);
+		moveToLocal($returnTo, $data);
+	}
 	
 	// Get arrays of entries.
-	$sec_uids = explode(",",$_REQUEST['sec_uid']);
+	$prj_id = $_REQUEST['prj_id'];
+	$rep_id = $_REQUEST['rep_id'];
+	$sec_ids = explode(",",$_REQUEST['sec_id']);
 	$sec_nams = explode(",",$_REQUEST['sec_nam']);
 	$sec_cdts = explode(",",$_REQUEST['sec_cdt']);
 	$sec_mdts = explode(",",$_REQUEST['sec_mdt']);
 	$sec_mems = explode(",",$_REQUEST['sec_mem']);
 	$sec_ords = explode(",",$_REQUEST['sec_ord']);
 	
-	if(!empty($_REQUEST['rep_id'])) {
-		for ($i = 0; $i <= $cnt_sec; $i++) {
-			echo $i;
-			// Find a uuid of the member who created this entry by username.
-			$sql_sel_mem = "SELECT uuid FROM member WHERE username = '" .$sec_mems[$i]. "'";
-			$sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
-			while ($row = pg_fetch_assoc($sql_res_mem)) {
-				$mem_id = $row['uuid'];
-			}
+	// Count the number of sections.
+	$cnt_sec = count($sec_ids);
+	
+	for ($i = 0; $i <= $cnt_sec-1; $i++) {
+		// Find a uuid of the member who created this entry by username.
+		$sql_sel_mem = "SELECT uuid FROM member WHERE username = '" .$sec_mems[$i]. "'";
+		$sql_res_mem = pg_query($conn, $sql_sel_mem);
+		if (!$sql_res_mem) {
+			// Get the error message.
+			$err = "DB Error: ".pg_last_error($conn);
 			
-			// Insert as new entry.
-			$uuid = str_replace("''","NULL","'".$sec_uids[$i]."'");
-			$rep_id = str_replace("''","NULL","'".$_REQUEST['rep_id']."'");
-			$mem = str_replace("''","NULL","'".$mem_id."'");
-			$ord = str_replace("","NULL",$sec_ords[$i]);
-			$nam = str_replace("''","NULL","'".$sec_nams[$i]."'");
-			$cdt = str_replace("''","NULL","'".$sec_cdts[$i]."'");
-			$mdt = str_replace("''","NULL","'".$sec_mdts[$i]."'");
+			// Move to Main Page.
+			header("Location: main.php?err=".$err);
+			exit;
+		}
+		while ($row = pg_fetch_assoc($sql_res_mem)) {
+			$mem_id = $row['uuid'];
+		}
+		
+		// Insert as new entry.
+		$sec_id = str_replace("''","NULL","'".$sec_ids[$i]."'");
+		$rep_id = str_replace("''","NULL","'".$_REQUEST['rep_id']."'");
+		$mem_id = str_replace("''","NULL","'".$mem_id."'");
+		$sec_ord = str_replace("","NULL",$sec_ords[$i]);
+		$sec_nam = str_replace("''","NULL","'".$sec_nams[$i]."'");
+		$sec_cdt = str_replace("''","NULL","'".$sec_cdts[$i]."'");
+		$sec_mdt = str_replace("''","NULL","'".$sec_mdts[$i]."'");
+		
+		$sql_sel_sec = "SELECT EXISTS(SELECT uuid FROM section WHERE uuid=".$sec_id.")";
+		$sql_res_sec = pg_query($conn, $sql_sel_sec);
+		if (!$sql_res_sec) {
+			// Get the error message.
+			$err = "DB Error: ".pg_last_error($conn);
 			
-			// Select the section.
-			$sql_sel_sec = "SELECT * FROM section where uuid='".$sec_uids[$i]."'";
-			$sql_res_sec = pg_query($conn, $sql_sel_sec);
-			
-			if (!$sql_res_sec) {
-				// Fail to get the result.
+			// Move to Main Page.
+			header("Location: main.php?err=".$err);
+			exit;
+		}
+		
+		$sec_ext = pg_fetch_row($sql_res_sec)[0];
+		
+		if ($sec_ext=="f"){
+			// Insert new record into the project table.
+			$sql_ins_sec = "INSERT INTO section (
+								uuid,
+								rep_id,
+								created_by,
+								modified_by,
+								order_number,
+								section_name,
+								date_created,
+								date_modified
+							) VALUES (
+								$sec_id,
+								$rep_id,
+								$mem_id,
+								$mem_id,
+								$sec_ord,
+								$sec_nam,
+								$sec_cdt,
+								$sec_mdt
+							)";
+			try{
+				$sql_res_sec = pg_query($conn, $sql_ins_sec);
 				
-			} else {
-				// Fetch rows of projects. 
-				$rows_sec = pg_fetch_all($sql_res_sec);
-				$row_cnt_sec = 0 + intval(pg_num_rows($sql_res_sec));
-				
-				if ($row_cnt_sec == 0){
-					// Insert a new entry.
-					try{
-						// Insert new record into the project table.
-						$sql_inssert = "INSERT INTO section (
-											uuid,
-											rep_id,
-											created_by,
-											modified_by,
-											order_number,
-											section_name,
-											date_created,
-											date_modified
-										) VALUES (
-											$uuid,
-											$rep_id,
-											$mem,
-											$mem,
-											$ord,
-											$nam,
-											$cdt,
-											$mdt
-										)";
-						
-						$sql_res = pg_query($conn, $sql_inssert);
-						// Check the result.
-						if (!$sql_res) {
-							// Get the error message.
-							$err = pg_last_error($conn);
-							
-							// close the connection to DB.
-							pg_close($conn);
-							
-							// Back to report page.
-							header("Location: report.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
-						}
-					} catch (Exception $err) {
-						// Get the error message.
-						$err->getMessage();
-						
-						// close the connection to DB.
-						pg_close($conn);
-						
-						// Back to projects page.
-						header("Location: report.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
-					}
-				} else {
-					// Update existng entry.
-					$ord = str_replace("","NULL",$i);
-					$today = date("Y-m-d H:i:s");
-					$mdt = str_replace("''","NULL","'".$today."'");
+				// Check the result.
+				if (!$sql_res_sec) {
+					// Get the error message.
+					$err = array("err" => "DB Error: ".pg_last_error($conn));
 					
-					try{
-						// Update existing record.
-						$sql_update = "UPDATE section SET 
-											rep_id=$rep_id,
-											order_number=$ord,
-											section_name=$nam,
-											created_by=$mem,
-											modified_by=$mem,
-											date_created=$cdt,
-											date_modified=$mdt,
-										WHERE uuid=$uuid";
-										
-						$sql_res = pg_query($conn, $sql_update);
-						
-						// Check the result.
-						if (!$sql_res) {
-							// Get the error message.
-							$err = pg_last_error($conn);
-							
-							// close the connection to DB.
-							pg_close($conn);
-							
-							// Back to projects page.
-							header("Location: report.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
-						}
-					} catch (Exception $err) {
-						// Get the error message.
-						$err->getMessage();
-						
-						// close the connection to DB.
-						pg_close($conn);
-						
-						// Back to projects page.
-						header("Location: report.php?uuid=".$_REQUEST['prj_id']."&err=".$err);
-					}
+					// Close the connection to DB.
+					pg_close($conn);
+					
+					// Return to material page.
+					$data = array_merge($data, $err);
+					moveToLocal($returnTo, $data);
 				}
+			} catch (Exception $e) {
+				// Get error message
+				$err = array("err" => "Caught exception: ".$e);
+				
+				// Close the connection to DB.
+				pg_close($conn);
+				
+				// Return to material page.
+				$data = array_merge($data, $err);
+				moveToLocal($returnTo, $data);
+			}
+		} else {
+			// Update existng entry.
+			$today = date("Y-m-d H:i:s");
+			$sec_mdt = str_replace("''","NULL","'".$today."'");
+			$sec_ord = str_replace("","NULL",$i);
+			
+			try{
+				// Update existing record.
+				$sql_udt_sec = "UPDATE section SET 
+									rep_id=$rep_id,
+									order_number=$sec_ord,
+									section_name=$sec_nam,
+									modified_by=$mem_id,
+									date_created=$sec_cdt,
+									date_modified=$sec_mdt
+								WHERE uuid=$sec_id";
+								
+				$sql_res_sec = pg_query($conn, $sql_udt_sec);
+				
+				// Check the result.
+				if (!$sql_res_sec) {
+					// Get the error message.
+					$err = array("err" => "DB Error: ".pg_last_error($conn));
+					
+					// Close the connection to DB.
+					pg_close($conn);
+					
+					// Return to material page.
+					$data = array_merge($data, $err);
+					moveToLocal($returnTo, $data);
+				}
+			} catch (Exception $e) {
+				// Get error message
+				$err = array("err" => "Caught exception: ".$e);
+				
+				// Close the connection to DB.
+				pg_close($conn);
+				
+				// Return to material page.
+				$data = array_merge($data, $err);
+				moveToLocal($returnTo, $data);
 			}
 		}
-		pg_close($conn);
-		
-		// Back to report page without error messages.
-		header("Location: report.php?uuid=".$_REQUEST['prj_id']);
 	}
+	// Close the connection.
+	pg_close($conn);
+	
+	// Return to report page.
+	moveToLocal($returnTo, $data);
 ?>

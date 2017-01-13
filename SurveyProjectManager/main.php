@@ -10,31 +10,48 @@
 	
 	if ($_SESSION["USERTYPE"] != "Administrator") {
 		header("Location: main.php");
+		exit;
 	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
     
     // Connect to DB.
     $username = $_SESSION["USERNAME"];
+	
 	// Connect to the DB.
 	$conn = pg_connect(
-				"host=".DBHOST."
-				port=".DBPORT."
-				dbname=".DBNAME."
-				user=".DBUSER."
-				password=".DBPASS
-			) or die('Connection failed: ' . pg_last_error());
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS);
+	
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
 	
 	// Get member information, who is currently logging in.
     $sql_sel_mem = "SELECT * FROM member WHERE username = '" . $username . "'";
-    $sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
+    $sql_res_mem = pg_query($conn, $sql_sel_mem);
+	if (!$sql_res_mem) {
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
 	
     while ($row = pg_fetch_assoc($sql_res_mem)) {
         $surname = $row['surname'];
@@ -46,28 +63,34 @@
 	// Get a list of registered project.
 	// Create a SQL query string.
 	$sql_sel_prj = "SELECT	P.uuid,
-									P.name,
-									P.beginning,
-									P.ending,
-									P.phase,
-									P.created,
-									P.created_by,
-									P.faceimage
-							FROM project AS P
-							INNER JOIN role AS R ON R.prj_id = P.uuid
-							WHERE R.mem_id = '".$userid."' ORDER by P.id";
+							P.name,
+							P.beginning,
+							P.ending,
+							P.phase,
+							P.created,
+							P.created_by,
+							P.faceimage
+					FROM project AS P
+					INNER JOIN role AS R ON R.prj_id = P.uuid
+					WHERE R.mem_id = '".$userid."' ORDER by P.id";
 	
 	// Excute the query and get the result of query.
 	$sql_res_prj = pg_query($conn, $sql_sel_prj);
 	if (!$sql_res_prj) {
-		// Print the error messages and exit routine if error occors.
-		echo "An error occurred in DB query.\n";
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
 		exit;
 	}
 	
 	// Fetch rows of projects. 
 	$rows_prj = pg_fetch_all($sql_res_prj);
 	$row_cnt = 0 + intval(pg_num_rows($sql_res_prj));
+	
+	// Close the connection.
+	pg_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -87,8 +110,8 @@
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
-		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
+		\n
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -173,26 +196,26 @@
 					</thead>
 					<?php
 						// For each row, HTML list is created and showed on browser.
-						foreach ($rows_prj as $row_project){
+						foreach ($rows_prj as $row_prj){
 							// Get a value in each field.
-							$prj_uuid = $row_project['uuid'];				// Internal identifier of the project
-							$prj_name = $row_project['name'];				// Project name
-							$prj_begin = $row_project['beginning'];			// The date of the project begining.
-							$prj_end = $row_project['ending'];				// The date of the project ending.
-							$prj_phase = $row_project['phase'];				// The phase for the continuous project.
-							$prj_fim = $row_project['faceimage'];			// The phase for the continuous project.
+							$prj_id = $row_prj['uuid'];				// Internal identifier of the project
+							$prj_name = $row_prj['name'];				// Project name
+							$prj_begin = $row_prj['beginning'];			// The date of the project begining.
+							$prj_end = $row_prj['ending'];				// The date of the project ending.
+							$prj_phase = $row_prj['phase'];				// The phase for the continuous project.
+							$prj_fim = $row_prj['faceimage'];			// The phase for the continuous project.
 							
 							// Build HTML tag elements using aquired field values.
 							echo "\t\t\t\t\t\t<tr>\n";
 							if($prj_fim != ""){
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_uuid. "'>\n";
-								echo "\t\t\t\t\t\t\t\t\t<img height=96 src='avatar_project_face.php?uuid=" .$prj_uuid."' alt='img'/>\n";
+								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_id. "'>\n";
+								echo "\t\t\t\t\t\t\t\t\t<img height=96 src='avatar_project_face.php?uuid=" .$prj_id."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t\t</td>\n";
 							} else {
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_id. "'>\n";
 								echo "\t\t\t\t\t\t\t\t\t<img height=96 src='images/noimage.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t\t</td>\n";
@@ -213,7 +236,7 @@
 								echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 								echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-success'\n";
 								echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\tonclick=editProject('".$prj_uuid."');>\n";
+								echo "\t\t\t\t\t\t\t\t\t\tonclick=editProject('".$prj_id."');>\n";
 								echo "\t\t\t\t\t\t\t\t\t<span>プロジェクトの編集</span>\n";
 								echo "\t\t\t\t\t\t\t\t</button>\n";
 							}
@@ -222,7 +245,7 @@
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToConsolidation('".$prj_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToConsolidation('".$prj_id."');>\n";
 							echo "\t\t\t\t\t\t\t\t\t<span>資料の編集</span>\n";
 							echo "\t\t\t\t\t\t\t\t</button>\n";
 							
@@ -231,7 +254,7 @@
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToReport('".$prj_uuid."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\tonclick=moveToReport('".$prj_id."');>\n";
 							echo "\t\t\t\t\t\t\t\t\t<span>報告書の編集</span>\n";
 							echo "\t\t\t\t\t\t\t\t</button>\n";
 							
@@ -239,7 +262,6 @@
 							echo "</td>\n";
 							echo "\t\t\t\t\t\t</tr>\n";
 						}
-						pg_close($conn);
 					?>
 				</table>
 			</div>
@@ -251,20 +273,61 @@
 				window.location.href = "edit_member.php?user=" + uuid;
 			}
 			// Move to other page to show the summary of the project.
-			function moveToConsolidation(uuid) {
-				//window.location.href = "consolidation.php?uuid=" + uuid;
-				window.location.href = "consolidation.php?uuid=" + uuid;
+			function moveToConsolidation(prj_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				main_form.appendChild(inp_prj_id);
+				
+				main_form.setAttribute("action", "consolidation.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
 				return false;
 			}
 			
 			// Move to other page to show the summary of the project.
-			function moveToReport(uuid) {
-				window.location.href = "report.php?uuid=" + uuid;
+			function moveToReport(prj_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				main_form.appendChild(inp_prj_id);
+				
+				main_form.setAttribute("action", "report.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
 				return false;
 			}
 			// Move to other page to show the summary of the project.
-			function editProject(uuid) {
-				window.location.href = "edit_project.php?uuid=" + uuid;
+			function editProject(prj_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				main_form.appendChild(inp_prj_id);
+				
+				main_form.setAttribute("action", "edit_project.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
 				return false;
 			}
 		</script>

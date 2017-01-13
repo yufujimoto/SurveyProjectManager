@@ -166,7 +166,6 @@
                             $mem_pwd,
                             $mem_typ
                         )";
-        echo $sql_mem_inssert;
         $sql_mem_result = pg_query($conn, $sql_mem_inssert);
 		
         // Check the result.
@@ -198,7 +197,6 @@
 		// Back to member add page.
 		header("Location: add_member.php?err=".$err);
     }
-    
 	// close the connection to DB.
 	pg_close($conn);
 	
