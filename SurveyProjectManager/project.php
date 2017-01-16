@@ -17,10 +17,51 @@
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
 	$err = $_REQUEST["err"];
+    
+    // Connect to DB.
+    $username = $_SESSION["USERNAME"];
+	
+	// Connect to the DB.
+	$conn = pg_connect(
+				"host=".DBHOST.
+				" port=".DBPORT.
+				" dbname=".DBNAME.
+				" user=".DBUSER.
+				" password=".DBPASS);
+	
+	// Check the connection status.
+	if(!$conn){
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
+	// Get a list of registered project.
+	// Create a SQL query string.
+	$sql_sel_prj = "SELECT * FROM project ORDER by id";
+	
+	// Excute the query and get the result of query.
+	$sql_res_prj = pg_query($conn, $sql_sel_prj);
+	if (!$sql_res_prj) {
+		// Get the error message.
+		$err = "DB Error: ".pg_last_error($conn);
+		
+		// Move to Main Page.
+		header("Location: main.php?err=".$err);
+		exit;
+	}
+	
+	// Fetch rows of projects. 
+	$rows_prj = pg_fetch_all($sql_res_prj);
+	$row_cnt = 0 + intval(pg_num_rows($sql_res_prj));
+	
+	// Close the connection.
+	pg_close($conn);
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -136,27 +177,6 @@
 			
 			<!-- Contents -->
 			<div id="contents" class="row">
-				<?php
-					// Connect to the DB.
-					$conn = pg_connect("host=".DBHOST." port=".DBPORT." dbname=".DBNAME." user=".DBUSER." password=".DBPASS)
-						or die("Connection failed: " . pg_last_error());
-					
-					// Get a list of registered project.
-					// Create a SQL query string.
-					$sql_sel_prj = "SELECT * FROM project ORDER by id";
-					
-					// Excute the query and get the result of query.
-					$sql_res_prj = pg_query($conn, $sql_sel_prj);
-					if (!$sql_res_prj) {
-						// Print the error messages and exit routine if error occors.
-						echo "An error occurred in DB query.\n";
-						exit;
-					}
-					
-					// Fetch rows of projects. 
-					$rows_prj = pg_fetch_all($sql_res_prj);
-					$row_cnt = 0 + intval(pg_num_rows($sql_res_prj));
-				?>
 				<h3><?php echo $row_cnt?>件のプロジェクトが登録されています。</h3>
 			</div>
 			<div class="row">
@@ -199,9 +219,6 @@
 								echo "\n\t\t\t\t\t\t\t<td style='width: 150px;'>" . $prj_by ."</td>";
 								echo "\n\t\t\t\t\t\t</tr>\n";
 							}
-							
-							// Close the connection.
-							pg_close($conn);
 						?>
 					</form>
 				</table>
@@ -211,8 +228,22 @@
 		<!-- Javascript -->
 		<script type="text/javascript">
 			// Move to other page to show the summary of the project.
-			function editProject(uuid) {
-				window.location.href = "edit_project.php?uuid=" + uuid;
+			function editProject(prj_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				main_form.appendChild(inp_prj_id);
+				
+				main_form.setAttribute("action", "edit_project.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
 				return false;
 			}
 			
@@ -224,7 +255,7 @@
 			
 			// Delete checked project from both the list and Database.
 			function deleteSelectedProject() {
-				var prj_uuid = "";
+				var prj_id = "";
 				var table=document.getElementById("project");
 				var selection = document.getElementById("selection");
 				
@@ -234,12 +265,25 @@
 						
 						if (checked) {
 							// Get a project id of the selected item.
-							prj_uuid = selection[i].value;
+							prj_id = selection[i].value;
 							// Get the selected row and delete the row. 
 							table.deleteRow(i+1);
 							
-							// Send the project id to the PHP script to drop selected project from DB. 
-							window.location.href = "delete_project.php?uuid=" + prj_uuid;
+							// Send the project id to the PHP script to drop selected project from DB.
+							var main_form = document.createElement("form");
+							document.body.appendChild(main_form);
+							
+							var inp_prj_id = document.createElement("input");
+							inp_prj_id.setAttribute("type", "hidden");
+							inp_prj_id.setAttribute("id", "prj_id");
+							inp_prj_id.setAttribute("name", "prj_id");
+							inp_prj_id.setAttribute("value", prj_id);
+							
+							main_form.appendChild(inp_prj_id);
+							
+							main_form.setAttribute("action", "delete_project.php");
+							main_form.setAttribute("method", "post");
+							main_form.submit();
 							
 							// only one radio can be logically checked, don"t check the rest
 							break;

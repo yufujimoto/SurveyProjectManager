@@ -29,18 +29,18 @@
             $con_img_fl = "uploads/thumbnail_".$con_img_nam;
             $con_img_str = fopen($con_img_fl,'r');
             $con_img_obj = fread($con_img_str,filesize($con_img_fl));
-            $con_img_esc= pg_escape_bytea($con_img_obj);
+            $con_img= pg_escape_bytea($con_img_obj);
         } else {
             $con_img_fl = "images/noimage.jpg";
             $con_img_str = fopen($con_img_fl,'r');
             $con_img_obj = fread($con_img_str,filesize($con_img_fl));
-            $con_img_esc= pg_escape_bytea($con_img_obj);
+            $con_img= pg_escape_bytea($con_img_obj);
         }
     } else {
         $con_img_fl = "images/noimage.jpg";
         $con_img_str = fopen($con_img_fl,'r');
         $con_img_obj = fread($con_img_str,filesize($con_img_fl));
-        $con_img_esc= pg_escape_bytea($con_img_obj);
+        $con_img= pg_escape_bytea($con_img_obj);
     }
     
     // Get geographic extent for the consolidation.
@@ -79,7 +79,6 @@
     $prj_id = "'".$_REQUEST['prj_id']."'";
     $con_id = "'".GUIDv4()."'";
     $con_nam = "'".$_REQUEST['con_nam']."'";
-    $con_img = $con_img_esc;
     $con_bgn = str_replace("''", "NULL", "'".$_REQUEST['con_bgn']."'");
     $con_end = str_replace("''", "NULL", "'".$_REQUEST['con_end']."'");
     $con_dsc = str_replace("''", "NULL", "'".$_REQUEST['con_dsc']."'");
@@ -102,32 +101,33 @@
 		moveToLocal($returnTo, $data);
 	}
     
+	$sql_ins_con = "INSERT INTO consolidation (
+						uuid,
+						prj_id,
+						name,
+						faceimage,
+						geographic_name,
+						geographic_extent,
+						represented_point,
+						estimated_area,
+						estimated_period_beginning,
+						estimated_period_ending,
+						descriptions
+					) VALUES (
+						$con_id,
+						$prj_id,
+						$con_nam,
+						'{$con_img}',
+						$con_add,
+						$con_ext,
+						$con_rep,
+						$con_est,
+						$con_bgn,
+						$con_end,
+						$con_dsc
+					)";
+	
     try {
-        $sql_ins_con = "INSERT INTO consolidation (
-                uuid,
-                prj_id,
-                name,
-                faceimage,
-                geographic_name,
-                geographic_extent,
-                represented_point,
-                estimated_area,
-                estimated_period_beginning,
-                estimated_period_ending,
-                descriptions
-            ) VALUES (
-                $con_id,
-                $prj_id,
-                $con_nam,
-                '{$con_img}',
-                $con_add,
-                $con_ext,
-                $con_rep,
-                $con_est,
-                $con_bgn,
-                $con_end,
-                $con_dsc
-            )";
         $sql_res_con = pg_query($conn, $sql_ins_con);
         
         // Check the result.

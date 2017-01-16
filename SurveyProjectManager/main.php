@@ -54,10 +54,10 @@
 	}
 	
     while ($row = pg_fetch_assoc($sql_res_mem)) {
-        $surname = $row['surname'];
-        $firstname = $row['firstname'];
-		$usertype = $row['usertype'];
-		$userid = $row['uuid'];
+        $mem_snm = $row['surname'];
+        $mem_fnm = $row['firstname'];
+		$mem_uty = $row['usertype'];
+		$mem_id = $row['uuid'];
     }
 	
 	// Get a list of registered project.
@@ -72,7 +72,7 @@
 							P.faceimage
 					FROM project AS P
 					INNER JOIN role AS R ON R.prj_id = P.uuid
-					WHERE R.mem_id = '".$userid."' ORDER by P.id";
+					WHERE R.mem_id = '".$mem_id."' ORDER by P.id";
 	
 	// Excute the query and get the result of query.
 	$sql_res_prj = pg_query($conn, $sql_sel_prj);
@@ -111,7 +111,7 @@
 		
 		<!-- Import external scripts for Bootstrap CSS -->
 		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
-		\n
+		
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -154,7 +154,7 @@
 						<!-- Main Label of CSV uploader -->
 						<tr>
 							<td>
-								<h2>ようこそ、<?php echo $surname." ".$firstname; ?>さん</h2>
+								<h2>ようこそ、<?php echo $mem_snm." ".$mem_fnm; ?>さん</h2>
 							</td>
 						</tr>
 						<!-- Display Errors -->
@@ -165,7 +165,7 @@
 											name="btn_add_prj"
 											class="btn btn-sm btn-default"
 											type="submit"
-											onclick="editMe('<?php echo $_SESSION["USERNAME"];?>');">
+											onclick="editMe('<?php echo $mem_id;?>');">
 										<span class="glyphicon glyphicon-user" aria-hidden="true">ユーザーの編集</span>
 									</button>
 								</div>
@@ -240,6 +240,7 @@
 								echo "\t\t\t\t\t\t\t\t\t<span>プロジェクトの編集</span>\n";
 								echo "\t\t\t\t\t\t\t\t</button>\n";
 							}
+							
 							// Create a button for moving to consolidation page.
 							echo "\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
 							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
@@ -268,9 +269,23 @@
 		</div>
 		<!-- Javascript -->
 		<script type="text/javascript">
-			function editMe(uuid) {
-				//window.location.href = "consolidation.php?uuid=" + uuid;
-				window.location.href = "edit_member.php?user=" + uuid;
+			function editMe(mem_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_mem_id = document.createElement("input");
+				inp_mem_id.setAttribute("type", "hidden");
+				inp_mem_id.setAttribute("id", "mem_id");
+				inp_mem_id.setAttribute("name", "mem_id");
+				inp_mem_id.setAttribute("value", mem_id);
+				
+				main_form.appendChild(inp_mem_id);
+				
+				main_form.setAttribute("action", "edit_member.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
+				return false;
 			}
 			// Move to other page to show the summary of the project.
 			function moveToConsolidation(prj_id) {
@@ -311,6 +326,7 @@
 				
 				return false;
 			}
+			
 			// Move to other page to show the summary of the project.
 			function editProject(prj_id) {
 				var main_form = document.createElement("form");

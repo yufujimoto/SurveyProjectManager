@@ -1,5 +1,6 @@
 <?php
 	// Start the session.
+	session_cache_limiter("private_no_expire");
     session_start();
     
     // Check session status.
@@ -8,17 +9,21 @@
       exit;
     }
 	
+	if ($_SESSION["USERTYPE"] != "Administrator") {
+		header("Location: main.php");
+		exit;
+	}
+	
 	// Load external libraries.
 	require "lib/guid.php";
     require "lib/config.php";
 	
-	header("Content-Type: text/html; charset=UTF-8");
-	
 	// Get parameters from post.
-	$err = $_REQUEST["err"];
-	$uuid = uniqid($_SESSION["USERNAME"]."_");
-	$img = "uploads/".$uuid.".jpg";
-	$tmg = "uploads/thumbnail_".$uuid.".jpg";
+	$err = $_REQUEST['err'];
+	$prj_id = $_REQUEST['prj_id'];
+	
+	// Generate unique ID for saving temporal files.
+	$tmp_nam = uniqid($_SESSION["USERNAME"]."_");
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -40,12 +45,11 @@
 		
 		<!-- Import external scripts for Bootstrap CSS -->
 		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
-		
+		\n
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
 		<script type="text/javascript" src="lib/refreshImage.js"></script>
-
 		
 		<!-- Import external scripts for calendar control -->
 		<link rel="stylesheet" type="text/css" href="lib/calendar/codebase/dhtmlxcalendar.css"/>
@@ -75,8 +79,15 @@
 				});
 			});
 		</script>
+		
+		<!-- Get an avatar image on load. -->
+		<script>
+			function doOnLoad(){
+				refreshAvatar(id="<?php echo $tmp_nam;?>",h=400,w="",target="consolidation");
+			}
+		</script>
 	</head>
-	
+
 	<body onload="doOnLoad();">
 	    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
 		    <div class="container">
@@ -107,7 +118,7 @@
 						<!-- Main Label of CSV uploader -->
 						<tr>
 							<td>
-								<h2>プロジェクトの登録</h2>
+								<h2>プロジェクトの追加</h2>
 							</td>
 						</tr>
 						<tr>
@@ -116,9 +127,31 @@
 											name="btn_add_mat"
 											class="btn btn-sm btn-default"
 											type="submit" value="add_material"
-											onclick="backToProject()">
-										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> プロジェクトの管理に戻る</span>
+											onclick="backToMyPage()">
+										<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"> マイページに戻る</span>
 									</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan=7 style="text-align: left">
+								<div class="btn-group">
+									<button id="btn_udt_prj"
+											name="btn_udt_prj"
+											class="btn btn-sm btn-primary"
+											type="submit"
+											onclick='addNewProject("<?php echo $tmp_nam; ?>");'>
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新規登録</span>
+									</button>
+									<!--
+									<button id="btn_exp_mat"
+											name="btn_exp_mat"
+											class="btn btn-sm btn-success"
+											type="submit" 
+											onclick="ExportConsolidationByCsv();">
+										<span class="glyphicon glyphicon-download" aria-hidden="true"> 対象資料のエクスポート</span>
+									</button>
+									-->
+								</div>
 							</td>
 						</tr>
 						<!-- Display Errors -->
@@ -130,159 +163,251 @@
 					</thead>
 				</table>
 			</div>
-
 			<!-- Avatar -->
-			<div class="row">
-				<table class='table table' style="border: hidden">
-					<!-- iFrame for showing Avatar -->
-					<tr style="text-align: center">
-						<td colspan="2">
-							<iframe id="iframe_avatar" 
-									name="iframe_avatar"
-									style="width: 610px; height: 410px; border: hidden; border-color: #999999;"
-									src="avatar_uploaded.php?target=project&hight=400&width=600">
-							</iframe>
-						</td>
-					</tr>
-					<tr>
-						<form id="form_avatar" method="post" enctype="multipart/form-data">
-							<td style="width: auto">
-								<div class="input-group">
-									<span class="input-group-btn">
-										<span class="btn btn-primary btn-file">
-											Browse&hellip;
-											<input id="input_avatar"
-												   name="avatar"　
-												   type="file"
-												   size="50"
-												   accept=".jpg,.JPG,.jpeg,.JPEG" />
-										</span>
-									</span>
-									<input id="name_avatar" 
-										   name="name_avatar"
-										   class="form-control" 
-										   type="text"
-										   readonly value=""/>
-								</div>
-							</td>
-							<td style="width: 100px">
-								<input id="btn-upload" 
-									   name="btn-upload"
-									   class="btn btn-md btn-success"
-									   type="submit"
-									   value="アップロード"
-									   onclick='refreshAvatar(id="<?php echo $uuid;?>",h=400,w=600,target="project");'/>
-							</td>
-						</form>
-					</tr>
-				</table>
-			</div>
+			<ul class="nav nav-tabs">
+				<li class="active"><a data-toggle="tab" href="#tab_bsc">基本情報</a></li>
+				<li><a data-toggle="tab" href="#tab_dsc">概要</a></li>
+			</ul>
 			
-			<!-- Project view -->
-			<div class="row">
-				<form action="insert_project.php" method="post">
-					<table class='table table'>
-						<!------------------------
-						   Project Infrormation
-						------------------------->
-						<tr style="background-color: #343399; color: #ffffff">
-							<td colspan="2">
-								<span class="glyphicon glyphicon-info-sign" aria-hidden="true"> プロジェクト情報</span>
-							</td>
-						</tr>
-						<!-- Project title -->
-						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>課題名</td>
-							<td><input class="form-control"  type='text' name="title"></td>
-						</tr>
-						<!-- Project name -->
-						<tr>
-							<td style='width: 200px; text-align: center; vertical-align: middle'>プロジェクト名</td>
-							<td><input class="form-control"  type='text' name="name"></td>
-						</tr>
-						<!-- Period and phase of the project -->
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>期間と次数</td>
+			<div class="tab-content">
+				<div id="tab_bsc" class="tab-pane fade in active">
+					<h4><span class="glyphicon glyphicon-info-sign" aria-hidden="true"> 基本情報</span></h4>
+					<table class="table table" style="border: hidden">
+						<!-- iFrame for showing Avatar -->
+						<tr style="text-align: left">
 							<td>
-								<div class="row">
-									<!-- The date of started -->
-									<div class="form-group col-lg-4">
+								<iframe id="iframe_avatar"
+										name="iframe_avatar"
+										style="width: 510px;
+										height: 300px;
+										border:
+										hidden;
+										border-color: #999999;"
+										src="avatar_uploaded.php?target=project&height=300&width=500&img_id=<?php echo $prj_id; ?>">
+								</iframe>
+								<form id="form_avatar" class="form-inline" method="post" enctype="multipart/form-data">
+									<div class="form-group">
 										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">開始:</span>
-											<input class="form-control"
+											<span class="input-group-btn">
+												<span class="btn btn-primary btn-file">画像の参照&hellip;
+													<input id="input_avatar"
+													   name="avatar"　
+													   type="file"
+													   size="50"
+													   accept=".jpg,.JPG,.jpeg,.JPEG" />
+												</span>
+											</span>
+											<input id="name_avatar"
+												   name="name_avatar"
 												   type="text"
-												   name="date_from"
-												   placeholder="YYYY-MM-DD"
-												   id="date_from"
-												   onclick="setSens('date_to', 'max');" >
+												   class="form-control"
+												   style="width: 300px"
+												   readonly/>
 										</div>
 									</div>
-									<!-- The date of finished -->
-									<div class="form-group col-lg-4">
-										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">終了:</span>
-											<input class="form-control"
-												   type='text'
-												   name="date_to"
-												   placeholder="YYYY-MM-DD"
-												   id="date_to"
-												   onclick="setSens('date_from', 'min');" >
-										</div>
+									<div class="form-group">
+										<input id="btn-upload"
+											   name="btn-upload"
+											   class="btn btn-md btn-success"
+											   type="submit"
+											   value="アップロード"
+											   style="width: 100px"
+											   onclick='refreshAvatar(id="<?php echo $tmp_nam;?>",h=300,w="",target="consolidation");'
+											   />
 									</div>
-									<!-- The phase of the project -->
-									<div class="form-group col-lg-4">
-										<div class="input-group">
-											<span class="input-group-addon" id="basic-addon1">調査次数:</span>
-											<select class="combobox input-large form-control" name="phase" style='text-align: center'>
-												<?php
-													for ($i = 1; $i <= 20; $i++) {
-														echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
-													}
-												?>
-											</select>
+								</form>
+							</td>
+							<td id="td_prj_inf" style='vertical-align: top;'>
+								<div id="div_prj_bsc_inf" name="div_con_inf">
+									<div id="div_prj_ttl" class="input-group">
+										<span class="input-group-addon" style="width: 120px">課題名:</span>
+										<input id="prj_ttl"
+											   name="prj_ttl"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   />
+									</div>
+									<div id="div_prj_nam" class="input-group">
+										<span class="input-group-addon" style="width: 120px">プロジェクト名:</span>
+										<input id="prj_nam"
+											   name="prj_nam"
+											   class="form-control"
+											   type="text"
+											   style="width: 454px;"
+											   />
+									</div>
+									<div id="div_prj_bgn" class="input-group">
+										<span class="input-group-addon" style="width: 120px">存在期間:</span>
+										<div class="input-group-vertical">
+											<div id="div_grp_prj_bgn" class="input-group">
+												<span class="input-group-addon" style="width: 100px">開始年月日</span>
+												<input id="prj_bgn"
+													   name="prj_bgn"
+													   class="form-control"
+													   type="text"
+													   style="width: 354px"
+													   onclick="newDate('date_from');"/>
+											</div>
+											<script type="text/javascript">newDate("prj_bgn");</script>
+											
+											<div id="div_grp_prj_end" class="input-group">
+												<span class="input-group-addon" style="width: 100px">終了年月日</span>
+												<input id="prj_end"
+													   name="prj_end"
+													   class="form-control"
+													   type="text"
+													   style="width: 354px" 
+													   onclick="newDate('date_to');"/>
+											</div>
+											<script type="text/javascript">newDate("prj_end");</script>
+											
+											<div id="div_grp_con_end" class="input-group">
+												<span class="input-group-addon" style="width: 100px">調査次数</span>
+												<select id="prj_phs" 
+														name="prj_phs"
+														class="combobox input-large form-control" 
+														style="text-align: center; width: 354px">
+													<option value="1">1</option>
+													<?php
+														for ($i = 1; $i <= 20; $i++) {
+															echo "\t\t\t\t\t\t\t<option value='". $i ."'>" . $i . "</option>\n";
+														}
+													?>
+												</select>
+											</div>
 										</div>
 									</div>
 								</div>
 							</td>
 						</tr>
-						
-						<!-- Descriptions about the project -->
+					</table>
+				</div>
+				<div id="tab_dsc" class="tab-pane fade">
+					<h4><span class="glyphicon glyphicon-list-alt" aria-hidden="true"> 説明記述</span></h4>
+					<table>
 						<tr>
-							<td style='text-align: center; vertical-align: middle'>プロジェクト紹介</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='intro'></textarea>
-							</td>
-						</tr>
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>調査原因</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='cause'></textarea>
-							</td>
-						</tr>
-						<tr>
-							<td style='text-align: center; vertical-align: middle'>特記事項</td>
-							<td>
-								<textarea class="form-control" style='resize: none;'rows='10' name='desc'></textarea>
+							<td colspan="2">
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">概　要:</span>
+									<textarea id="prj_int"
+											  name="prj_int"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"></textarea>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">調査原因:</span>
+									<textarea id="prj_cas"
+											  name="prj_cas"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"></textarea>
+								</div>
+								<div class="input-group">
+									<span class="input-group-addon" style="width: 120px">特記事項:</span>
+									<textarea id="prj_dsc"
+											  name="prj_dsc"
+											  class="form-control"
+											  style="resize: none;
+													 width: 1000px;
+													 text-align: left"
+													 rows="10"></textarea>
+								</div>
 							</td>
 						</tr>
 					</table>
-					
-					<!-- Update button -->
-					<hr />
-					<table id="submission" class="table" style="border: hidden; padding: 0px; margin: 0px">
-						<tr>
-							<td style="text-align: right;">
-								<button class="btn btn-md btn-success" type="submit" value="registeration">
-									<span class="glyphicon glyphicon-plus" aria-hidden="true"> プロジェクトの登録</span>
-								</button>
-							</td>
-						</tr>
-					</table>
-					<input type="hidden" name="prj_fimg" value="<?php echo $uuid;?>.jpg">
-				</form>
+				</div>
 			</div>
 		</div>
-		<script language="JavaScript" type="text/javascript">
+		
+		<script>
+			function addNewProject(tmp_nam){
+				var prj_form = document.createElement("form");
+				
+				var inp_img_fl = document.createElement("input");
+				inp_img_fl.setAttribute("type", "hidden");
+				inp_img_fl.setAttribute("id", "img_fl");
+				inp_img_fl.setAttribute("name", "img_fl");
+				inp_img_fl.setAttribute("value", tmp_nam+".jpg");
+				
+				var prj_ttl = document.getElementById("prj_ttl").value;
+				var inp_prj_ttl = document.createElement("input");
+				inp_prj_ttl.setAttribute("type", "hidden");
+				inp_prj_ttl.setAttribute("id", "prj_ttl");
+				inp_prj_ttl.setAttribute("name", "prj_ttl");
+				inp_prj_ttl.setAttribute("value", prj_ttl);
+								
+				var prj_nam = document.getElementById("prj_nam").value;
+				var inp_prj_nam = document.createElement("input");
+				inp_prj_nam.setAttribute("type", "hidden");
+				inp_prj_nam.setAttribute("id", "prj_nam");
+				inp_prj_nam.setAttribute("name", "prj_nam");
+				inp_prj_nam.setAttribute("value", prj_nam);
+				
+				var prj_bgn = document.getElementById("prj_bgn").value;
+				var inp_prj_bgn = document.createElement("input");
+				inp_prj_bgn.setAttribute("type", "hidden");
+				inp_prj_bgn.setAttribute("id", "prj_bgn");
+				inp_prj_bgn.setAttribute("name", "prj_bgn");
+				inp_prj_bgn.setAttribute("value", prj_bgn);
+				
+				var prj_end = document.getElementById("prj_end").value;
+				var inp_prj_end = document.createElement("input");
+				inp_prj_end.setAttribute("type", "hidden");
+				inp_prj_end.setAttribute("id", "prj_end");
+				inp_prj_end.setAttribute("name", "prj_end");
+				inp_prj_end.setAttribute("value", prj_end);
+				
+				var prj_phs = document.getElementById("prj_phs").value;
+				var inp_prj_phs = document.createElement("input");
+				inp_prj_phs.setAttribute("type", "hidden");
+				inp_prj_phs.setAttribute("id", "prj_phs");
+				inp_prj_phs.setAttribute("name", "prj_phs");
+				inp_prj_phs.setAttribute("value", prj_phs);
+				
+				var prj_int = document.getElementById("prj_int").value;
+				var inp_prj_int = document.createElement("input");
+				inp_prj_int.setAttribute("type", "hidden");
+				inp_prj_int.setAttribute("id", "prj_int");
+				inp_prj_int.setAttribute("name", "prj_int");
+				inp_prj_int.setAttribute("value", prj_int);
+				
+				var prj_cas = document.getElementById("prj_cas").value;
+				var inp_prj_cas = document.createElement("input");
+				inp_prj_cas.setAttribute("type", "hidden");
+				inp_prj_cas.setAttribute("id", "prj_cas");
+				inp_prj_cas.setAttribute("name", "prj_cas");
+				inp_prj_cas.setAttribute("value", prj_cas);
+				
+				var prj_dsc = document.getElementById("prj_dsc").value;
+				var inp_prj_dsc = document.createElement("input");
+				inp_prj_dsc.setAttribute("type", "hidden");
+				inp_prj_dsc.setAttribute("id", "prj_dsc");
+				inp_prj_dsc.setAttribute("name", "prj_dsc");
+				inp_prj_dsc.setAttribute("value", prj_dsc);
+				
+				prj_form.appendChild(inp_img_fl);
+				prj_form.appendChild(inp_prj_ttl);
+				prj_form.appendChild(inp_prj_nam);
+				prj_form.appendChild(inp_prj_bgn);
+				prj_form.appendChild(inp_prj_end);
+				prj_form.appendChild(inp_prj_phs);
+				prj_form.appendChild(inp_prj_int);
+				prj_form.appendChild(inp_prj_cas);
+				prj_form.appendChild(inp_prj_dsc);
+				
+				prj_form.setAttribute("action", "test.php");
+				prj_form.setAttribute("method", "post");
+				prj_form.submit();
+				
+				return false;
+			}
+			
 			function backToProject() {
 				window.location.href = "project.php";
 				return false;

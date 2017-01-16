@@ -72,9 +72,15 @@
 					echo "src='images/noimage.jpg' alt='Uploaded image is invalid.'/>";
 				}
 			} elseif ($trgt=="member") {
-				// Initialize the default image file name.				
-				echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
-				echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
+				if($imgid != ""){
+					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
+					echo "src='avatar_member_list.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
+				} else {
+					// Initialize the default image file name.		
+					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
+					echo "src='images/avatar.jpg' alt='Uploaded image is invalid.'/>";
+				}
+				
 			} elseif ($trgt=="consolidation") {
 				// Initialize the default image file name.				
 				if($imgid != ""){

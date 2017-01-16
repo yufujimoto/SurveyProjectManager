@@ -547,7 +547,7 @@
 					rep_form.appendChild(inp_prj_id);
 					rep_form.appendChild(inp_sec_id);
 					
-					rep_form.setAttribute("action", "test.php");
+					rep_form.setAttribute("action", "delete_section.php");
 					rep_form.setAttribute("method", "post");
 					rep_form.submit();
 					

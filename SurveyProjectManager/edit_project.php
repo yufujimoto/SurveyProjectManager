@@ -1,5 +1,6 @@
 <?php
 	// Start the session.
+	session_cache_limiter("private_no_expire");
     session_start();
     
     // Check session status.
@@ -19,7 +20,7 @@
 	
 	// Get parameters from post.
 	$err = $_REQUEST['err'];
-	$uuid = $_REQUEST['prj_id'];
+	$prj_id = $_REQUEST['prj_id'];
 	
 	// Generate unique ID for saving temporal files.
 	$tmp_nam = uniqid($_SESSION["USERNAME"]."_");
@@ -43,7 +44,7 @@
 	}
 	
 	// Find the project.
-	$sql_sel_prj = "SELECT * FROM project WHERE uuid = '" . $uuid . "'";
+	$sql_sel_prj = "SELECT * FROM project WHERE uuid = '" . $prj_id . "'";
     $sql_res_prj = pg_query($conn, $sql_sel_prj);
 	if (!$sql_res_prj) {
 		// Get the error message.
@@ -91,7 +92,7 @@
 		
 		<!-- Import external scripts for Bootstrap CSS -->
 		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
-		\n
+		
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -164,7 +165,7 @@
 						<!-- Main Label of CSV uploader -->
 						<tr>
 							<td>
-								<h2>統合体の管理</h2>
+								<h2>プロジェクトの編集</h2>
 							</td>
 						</tr>
 						<tr>
@@ -209,7 +210,8 @@
 					</thead>
 				</table>
 			</div>
-			<!-- Avatar -->
+			
+			<!-- Dynamic Tab Selector -->
 			<ul class="nav nav-tabs">
 				<li class="active"><a data-toggle="tab" href="#tab_bsc">基本情報</a></li>
 				<li><a data-toggle="tab" href="#tab_dsc">概要</a></li>
@@ -434,7 +436,7 @@
 												 or die('Connection failed: ' . pg_last_error());
 											
 											// Find all members.
-											$sql_sel_rep = "SELECT * from report WHERE prj_id='".$uuid."' ORDER BY id";
+											$sql_sel_rep = "SELECT * from report WHERE prj_id='".$prj_id."' ORDER BY id";
 											
 											// Excute the query and get the result of query.
 											$result_select_rep = pg_query($conn, $sql_sel_rep);
@@ -482,7 +484,7 @@
 												echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-												echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$uuid."','".$rep_uuid."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$prj_id."','".$rep_uuid."');>\n";
 												echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove' aria-hidden='true'> 報告書の削除</span>\n";
 												echo "\t\t\t\t\t\t\t\t</button>\n";
 												
@@ -651,8 +653,8 @@
 			<!-- Modal content -->
 			<div class="modal-content" style="width: 800px">
 				<span class="close">×</span>
-				<form action="insert_role.php" method="post">
-					<input type="hidden" name= "prj_uuid" value="<?php echo $uuid;?>"/>
+				<form action="test.php" method="post">
+					<input type="hidden" name= "prj_id" value="<?php echo $prj_id;?>"/>
 					<button class="btn btn-md btn-success" type="submit">
 						<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新規登録</span>
 					</button>
@@ -697,16 +699,16 @@
 								$allmem_utp = $row_mem_all['usertype'];
 								
 								echo "<tr style='text-align: center;'>\n";
-								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'><input type='checkbox' name='prj_mem[]' value='" .$allmem_uuid. "' /></td>\n";
+								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
+								echo "\t\t\t\t\t\t\t\t<input type='checkbox' name='prj_mem[]' value='" .$allmem_uuid. "' /></td>\n";
 								if($allmem_ava != ""){
 									echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-									echo "\t\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$allmem_uuid. "'>\n";
-									echo "\t\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$allmem_uuid."' alt='img'/>\n";
-									echo "\t\t\t\t\t\t\t\t</a>\n";
+									echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$allmem_uuid."' alt='img'/>\n";
 									echo "\t\t\t\t\t\t\t</td>\n";
 								} else {
-									echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'><a href='project_members_view.php?mem_uuid=" .$allmem_uuid. "'>";
-									echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/></a></td>";
+									echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>";
+									echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>";
+									echo "\t\t\t\t\t\t\t</td>\n";
 								}
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>". $allmem_snm. " " .$allmem_fnm. "</td>\n";
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>". $allmem_unm. "</td>\n";
@@ -741,7 +743,7 @@
 			<div class="modal-content" style="width: 800px">
 				<span class="close">×</span>
 				<form action="insert_report.php" method="POST">
-					<input type="hidden" name= "prj_id" value="<?php echo $uuid;?>"/>
+					<input type="hidden" name= "prj_id" value="<?php echo $prj_id;?>"/>
 					<table id="new_report" class="table table-striped" style="vertical-align: middle;">
 						<tr>
 							<td style="width: 150px; text-align: center">タイトル</td>

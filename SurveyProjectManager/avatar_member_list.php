@@ -22,7 +22,7 @@
 	}
 	
 	// Query face image with specific uuid. 
-	$mem_id = $_REQUEST['mem_uuid'];
+	$mem_id = $_REQUEST['uuid'];
 	$sql_sel_mem = "SELECT avatar FROM member WHERE uuid='" .$mem_id."'" ;
 	$sql_sel_mem = pg_query($sql_sel_mem);
 	$sql_obj_mem = pg_fetch_result($sql_sel_mem, 'avatar');
