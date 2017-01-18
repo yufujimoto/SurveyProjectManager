@@ -69,7 +69,7 @@
 		$prj_img = $prj_row['faceimage'];
     }
     
-    // Get avatar for the prjsolidation.
+    // Get avatar for the project.
     $prj_img_nam = $_REQUEST['img_fl'];
     if ($prj_img_nam != "") {
         if (file_exists("uploads/".$prj_img_nam)) {
