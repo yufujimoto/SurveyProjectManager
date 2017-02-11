@@ -209,15 +209,11 @@
 							echo "\t\t\t\t\t\t<tr>\n";
 							if($prj_fim != ""){
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_id. "'>\n";
-								echo "\t\t\t\t\t\t\t\t\t<img height=96 src='avatar_project_face.php?uuid=" .$prj_id."' alt='img'/>\n";
-								echo "\t\t\t\t\t\t\t\t</a>\n";
+								echo "\t\t\t\t\t\t\t\t<img height=96 src='avatar_project_face.php?uuid=" .$prj_id."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</td>\n";
 							} else {
 								echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t\t<a href='project_consolidations_view.php?uuid=" .$prj_id. "'>\n";
-								echo "\t\t\t\t\t\t\t\t\t<img height=96 src='images/noimage.jpg' alt='img'/>\n";
-								echo "\t\t\t\t\t\t\t\t</a>\n";
+								echo "\t\t\t\t\t\t\t\t<img height=96 src='images/noimage.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t</td>\n";
 							}
 							echo "\t\t\t\t\t\t\t<td style='text-align: left; vertical-align: middle;'>".$prj_name."</td>\n";

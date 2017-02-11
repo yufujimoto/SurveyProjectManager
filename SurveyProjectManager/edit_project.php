@@ -403,12 +403,21 @@
 					<table>
 						<tr>
 							<td style="text-align: right;">
-								<button id="btn_add_prj_rep"
-										name="btn_add_prj_rep"
-										class="btn btn-sm btn-success"
-										type="submit">
-									<span class="glyphicon glyphicon-plus" aria-hidden="true"> 報告書の登録</span>
-								</button>
+								<div class='btn-group-vertical'>
+									<button id="btn_add_prj_rep"
+											name="btn_add_prj_rep"
+											class="btn btn-sm btn-success"
+											type="submit">
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"> 報告書の登録</span>
+									</button>
+									<button id="btn_add_prj_rep"
+											name="btn_add_prj_rep"
+											class="btn btn-sm btn-success"
+											type="submit"
+											onclick="editReport('<?php echo $prj_id; ?>');">
+										<span class="glyphicon glyphicon-pencil" aria-hidden="true"> 報告書の編集</span>
+									</button>
+								</div>
 							</td>
 						</tr>
 						<tr>
@@ -448,7 +457,7 @@
 											// Fetch rows of projects.
 											$rows_rep_all = pg_fetch_all($result_select_rep);
 											foreach ($rows_rep_all as $row_rep){
-												$rep_uuid = $row_rep['uuid'];
+												$rep_id = $row_rep['uuid'];
 												$rep_ttl = $row_rep['title'];
 												$rep_vol = $row_rep['volume'];
 												$rep_num = $row_rep['edition'];
@@ -484,7 +493,7 @@
 												echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
 												echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-												echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$prj_id."','".$rep_uuid."');>\n";
+												echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteReport('".$prj_id."','".$rep_id."');>\n";
 												echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove' aria-hidden='true'> 報告書の削除</span>\n";
 												echo "\t\t\t\t\t\t\t\t</button>\n";
 												
@@ -574,7 +583,7 @@
 											if (!empty($rol_rows)) {
 												foreach ($rol_rows as $rol_row){
 													// Get a value in each field.
-													$mem_uid = $rol_row['mem_id'];		// Project name
+													$mem_id = $rol_row['mem_id'];		// Project name
 													$rol_bgn = $rol_row['beginning'];	// The date of the project begining.
 													$rol_end = $rol_row['ending'];		// The date of the project ending.
 													$rol_rol = $rol_row['rolename'];	// The phase for the continuous project.
@@ -587,15 +596,11 @@
 													
 													if($mem_ava != ""){
 														echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>";
-														echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
-														echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$mem_uid."' alt='img'/>\n";
-														echo "\t\t\t\t\t\t\t</a>\n";
+														echo "\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_id=" .$mem_id."' alt='img'/>\n";
 														echo "\t\t\t\t\t\t</td>\n";
 													} else {
 														echo "\t\t\t\t\t\t<td style='vertical-align: top; text-align: right;'>\n";
-														echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uid. "'>\n";
-														echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>\n";
-														echo "\t\t\t\t\t\t\t</a>\n";
+														echo "\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>\n";
 														echo "\t\t\t\t\t\t</td>\n";
 													}
 													echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>". $org_nam. "</td>\n";
@@ -617,7 +622,7 @@
 													echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_del_rep'\n";
 													echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
 													echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-													echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteMember('".$mem_uid."');>\n";
+													echo "\t\t\t\t\t\t\t\t\t\tonclick=deleteMember('".$mem_id."');>\n";
 													echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove' aria-hidden='true'> メンバーの削除</span>\n";
 													echo "\t\t\t\t\t\t\t\t</button>\n";
 													
@@ -626,7 +631,7 @@
 													echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_mem'\n";
 													echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
 													echo "\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-													echo "\t\t\t\t\t\t\t\t\t\tonclick=editMember('".$mem_uid."');>\n";
+													echo "\t\t\t\t\t\t\t\t\t\tonclick=editMember('".$prj_id."','".$mem_id."');>\n";
 													echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil' aria-hidden='true'> メンバーの編集</span>\n";
 													echo "\t\t\t\t\t\t\t\t</button>\n";
 													echo "\t\t\t\t\t\t\t</div>\n";
@@ -653,7 +658,7 @@
 			<!-- Modal content -->
 			<div class="modal-content" style="width: 800px">
 				<span class="close">×</span>
-				<form action="test.php" method="post">
+				<form action="insert_role.php" method="post">
 					<input type="hidden" name= "prj_id" value="<?php echo $prj_id;?>"/>
 					<button class="btn btn-md btn-success" type="submit">
 						<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新規登録</span>
@@ -703,7 +708,7 @@
 								echo "\t\t\t\t\t\t\t\t<input type='checkbox' name='prj_mem[]' value='" .$allmem_uuid. "' /></td>\n";
 								if($allmem_ava != ""){
 									echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-									echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$allmem_uuid."' alt='img'/>\n";
+									echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_id=" .$allmem_uuid."' alt='img'/>\n";
 									echo "\t\t\t\t\t\t\t</td>\n";
 								} else {
 									echo "\t\t\t\t\t\t\t<td style='vertical-align: middle;'>";
@@ -962,6 +967,50 @@
 				return false;
 			}
 			
+			function editReport(prj_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				main_form.appendChild(inp_prj_id);
+				
+				main_form.setAttribute("action", "report.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
+				return false;
+			}
+			
+			function editMember(prj_id, mem_id) {
+				var main_form = document.createElement("form");
+				document.body.appendChild(main_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_mem_id = document.createElement("input");
+				inp_mem_id.setAttribute("type", "hidden");
+				inp_mem_id.setAttribute("id", "mem_id");
+				inp_mem_id.setAttribute("name", "mem_id");
+				inp_mem_id.setAttribute("value", mem_id);
+				
+				main_form.appendChild(inp_prj_id);
+				main_form.appendChild(inp_mem_id);
+				
+				main_form.setAttribute("action", "edit_project_member.php");
+				main_form.setAttribute("method", "post");
+				main_form.submit();
+				
+				return false;
+			}
 			function backToMyPage() {
 				window.location.href = "main.php";
 				return false;

@@ -1,17 +1,14 @@
 <?php
-	// Start the session.
+	// Start the session and unlock session file.
+	session_cache_limiter("private_no_expire");
     session_start();
+    session_write_close();
     
     // Check session status.
     if (!isset($_SESSION["USERNAME"])) {
       header("Location: logout.php");
       exit;
     }
-	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-		exit;
-	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
@@ -190,197 +187,246 @@
 			
 			<!-- Consolidation list -->
 			<div class="row">
-				<table id="tbl_rep" class="table table-striped">
-					<?php
-						// For each row, HTML list is created and showed on browser.
-						foreach ($rows_rep as $row_rep){
-							// Get a value in each field.
-							$rep_id = $row_rep['uuid'];
-							$rep_ttl = $row_rep['title'];
-							$rep_vol = $row_rep['volume'];
-							$rep_num = $row_rep['edition'];
-							$rep_srs = $row_rep['series'];
-							$rep_pub = $row_rep['publisher'];
-							$rep_yer = $row_rep['year'];
-							$rep_dsc = $row_rep['descriptions'];
-							
-							// Make HTML tag elements using aquired field values.
-							
-							// -------------------------------
-							// Header row
-							if (!empty($rep_vol)) {
-								if (!empty($rep_num)){
-									$lbl_ttl = $rep_ttl."(".$rep_vol."-".$rep_num.")";
-								} else {
-									$lbl_ttl = $rep_ttl."(".$rep_vol.")";
-								}
+				<?php
+					// For each row, HTML list is created and showed on browser.
+					foreach ($rows_rep as $row_rep){
+						// Get a value in each field.
+						$rep_id = $row_rep['uuid'];
+						$rep_ttl = $row_rep['title'];
+						$rep_vol = $row_rep['volume'];
+						$rep_num = $row_rep['edition'];
+						$rep_srs = $row_rep['series'];
+						$rep_pub = $row_rep['publisher'];
+						$rep_yer = $row_rep['year'];
+						$rep_dsc = $row_rep['descriptions'];
+						
+						// Make HTML tag elements using aquired field values.
+						
+						// -------------------------------
+						// Header row
+						if (!empty($rep_vol)) {
+							if (!empty($rep_num)){
+								$lbl_ttl = $rep_ttl."(".$rep_vol."-".$rep_num.")";
 							} else {
-								$lbl_ttl = $rep_ttl;
+								$lbl_ttl = $rep_ttl."(".$rep_vol.")";
+							}
+						} else {
+							$lbl_ttl = $rep_ttl;
+						}
+						echo "\t\t\t\t\t\t<div id='".$rep_id."' class='col-md-10' style='background-color:#f9f9f9;'>\n";
+						echo "\t\t\t\t\t\t\t<h3>". $lbl_ttl."</h3>\n";
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>タイトル</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_ttl_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_ttl_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_ttl."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>シリーズ</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_srs_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_srs_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_srs."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>出版者</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_pub_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_pub_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_pub."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>出版年</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_yer_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_yer_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_yer."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>巻</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_vol_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_vol_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_vol."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>号</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_num_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_num_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_num."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t\t<div id='mat_end' class='input-group' style='width:100%'>\n";
+						echo "\t\t\t\t\t\t\t\t<span class='input-group-addon' style='width: 100px'>備考</span>\n";
+						echo "\t\t\t\t\t\t\t\t<input class='form-control'";
+						echo "\t\t\t\t\t\t\t\t\ttype='text'\n";
+						echo "\t\t\t\t\t\t\t\t\tid='rep_dsc_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tname='rep_dsc_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\tvalue='".$rep_dsc."'/>\n";
+						echo "\t\t\t\t\t\t\t\t</div>\n";
+						
+						echo "\t\t\t\t\t\t</div>\n";
+						
+						// Give the table id by using report id.
+						$tbl_sec_id = "tbl_sec_".$rep_id;
+						
+						echo "\t\t\t\t\t\t<div id='div_ind_img' class='col-md-2' style='text-align: center'>\n";
+						echo "\t\t\t\t\t\t\t<div class='btn-group-vertical' style='width:100%'>\n";
+						
+						// Create a button for moving to consolidation page.
+						echo "\t\t\t\t\t\t\t\t<button id='btn_add_sec_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_sec'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-success'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."type='submit' style='text-align: left'\n";
+						echo "\t\t\t\t\t\t\t\t\t\tonclick=addSectionRow('".$prj_id."','".$rep_id."','".$_SESSION["USERNAME"]."');>\n";
+						echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-plus'> 章の追加</span>\n";
+						echo "\t\t\t\t\t\t\t\t</button>\n";
+						echo "\t\t\t\t\t\t\t\t<button id='btn_edt_sec_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_sec_'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-success'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."type='submit' style='text-align: left'\n";
+						echo "\t\t\t\t\t\t\t\t\t\tonclick=updateReport('".$prj_id."','".$rep_id."');>\n";
+						echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil'> 書誌情報の更新</span>\n";
+						echo "\t\t\t\t\t\t\t\t</button>\n";
+						echo "\t\t\t\t\t\t\t\t<button id='btn_udt_sec_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_udt_sec_".$rep_id."'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-warning'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."type='button'\n";
+						echo "\t\t\t\t\t\t\t\t\t\t"."style='display:none'\n";
+						echo "\t\t\t\t\t\t\t\t\t\tonclick=updateSection('".$prj_id."','".$rep_id."','".$tbl_sec_id."');>\n";
+						echo "\t\t\t\t\t\t\t\t\t<span>未確定項目の確定</span>\n";
+						echo "\t\t\t\t\t\t\t\t</button>\n";
+						echo "\t\t\t\t\t\t\t</div>\n";
+						echo "\t\t\t\t\t\t</div>\n";
+						
+						// Create the header row of the section list.
+						echo "\t\t\t\t\t\t\t<table id='".$tbl_sec_id."' class='table table'>\n";
+						echo "\t\t\t\t\t\t\t\t<tr style='text-align: left;'>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>セクション名</td>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>作成日</td>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>更新日</td>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>更新者</td>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'></td>\n";
+						echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'></td>\n";
+						echo "\t\t\t\t\t\t\t\t</tr>\n";
+						
+						// Get a list of sections in this report.
+						$sql_sel_sec = "SELECT
+											uuid,
+											modified_by,
+											order_number,
+											section_name,
+											to_char(date_created, 'yyyy/mm/dd hh24:mm:ss') as date_created,
+											to_char(date_modified, 'yyyy/mm/dd hh24:mm:ss') as date_modified 
+											FROM section WHERE rep_id = '".$rep_id."' ORDER by order_number";
+						
+						// Excute the query and get the result of query.
+						$sql_res_sec = pg_query($conn, $sql_sel_sec);
+						if (!$sql_res_sec) {
+							// Print the error messages and exit routine if error occors.
+							echo "An error occurred in DB query.\n";
+							exit;
+						}
+						
+						// Fetch rows of projects. 
+						$rows_sec = pg_fetch_all($sql_res_sec);
+						$row_cnt_sec = 0 + intval(pg_num_rows($sql_res_sec));
+						
+						// For each row, HTML list is created and showed on browser.
+						foreach ($rows_sec as $row_sec){
+							// Get a value in each field.
+							$sec_id = $row_sec['uuid'];
+							$sec_mod = $row_sec['modified_by'];
+							$sec_onm = $row_sec['order_number'];
+							$sec_nam = $row_sec['section_name'];
+							$sec_dtc = $row_sec['date_created'];
+							$sec_dtm = $row_sec['date_modified'];
+							
+							// Get user name by uuid.
+							$sql_sel_mem = "SELECT username FROM member WHERE uuid = '" .$sec_mod. "'";
+							$sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
+							while ($row = pg_fetch_assoc($sql_res_mem)) {
+								$mem_nam = $row['username'];
 							}
 							
-							echo "<tr style='text-align: left;'>\n";
-							echo "\t\t\t\t\t\t<td style='vertical-align: middle;' colspan='2'><h3>". $lbl_ttl."</h3>\n";
-							echo "\t\t\t\t\t\t\t<ul>\n";
-							echo "\t\t\t\t\t\t\t\t<li>シリーズ：".$rep_srs."</li>\n";
-							echo "\t\t\t\t\t\t\t\t<li>出 版 者：".$rep_pub."</li>\n";
-							echo "\t\t\t\t\t\t\t\t<li>出 版 年：".$rep_yer."</li>\n";
-							echo "\t\t\t\t\t\t\t\t<li>備 　 考：".$rep_dsc."</li>\n";
-							echo "\t\t\t\t\t\t\t</ul>\n";
-							echo "\t\t\t\t\t\t</td>\n";
-							echo "\t\t\t\t\t\t<td style='vertical-align: top; text-align:right;' width=150px>\n";
+							echo "\t\t\t\t\t\t\t\t<tr id='".$sec_id."' name='".$sec_onm."'>\n";
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;'>".$sec_nam."</td>\n";
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$sec_dtc."</td>\n";
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$sec_dtm."</td>\n";
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$mem_nam."</td>\n";
 							
-							// Give the table id by using report id.
-							$tbl_sec_id = "tbl_sec_".$rep_id;
+							// Control menu.
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px' id='sct_ctr_mv_".$sec_id."'>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t<div class='btn-group'>\n";
 							
-							echo "\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_sct_up_".$sec_id."'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_itm_up'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveUp('".$tbl_sec_id."','".$sec_id."','".$rep_id."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-chevron-up'></span>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
+							
+							echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_sct_dwn_".$sec_id."'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_itm_dwn'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveDown('".$tbl_sec_id."','".$sec_id."','".$rep_id."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-chevron-down'></span>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
+							
+							echo "\t\t\t\t\t\t\t\t\t\t</div>\n";
+							echo "\t\t\t\t\t\t\t\t\t</td>\n";
+							
+							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px'>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
 							
 							// Create a button for moving to consolidation page.
-							echo "\t\t\t\t\t\t\t\t<button id='btn_add_sec_".$rep_id."'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_add_sec'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-success'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit' style='text-align: left'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=addSectionRow('".$prj_id."','".$rep_id."','".$_SESSION["USERNAME"]."');>\n";
-							echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-plus'> 章の追加</span>\n";
-							echo "\t\t\t\t\t\t\t\t</button>\n";
-							echo "\t\t\t\t\t\t\t\t<button id='btn_edt_sec_".$rep_id."'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_edt_sec_'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-success'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."type='submit' style='text-align: left'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=editReport('".$rep_id."');>\n";
-							echo "\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil'> 書誌情報の編集</span>\n";
-							echo "\t\t\t\t\t\t\t\t</button>\n";
-							echo "\t\t\t\t\t\t\t\t<button id='btn_udt_sec_".$rep_id."'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."name='btn_udt_sec_".$rep_id."'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-warning'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."type='button'\n";
-							echo "\t\t\t\t\t\t\t\t\t\t"."style='display:none'\n";
-							echo "\t\t\t\t\t\t\t\t\t\tonclick=updateSection('".$prj_id."','".$rep_id."','".$tbl_sec_id."');>\n";
-							echo "\t\t\t\t\t\t\t\t\t<span>未確定項目の確定</span>\n";
-							echo "\t\t\t\t\t\t\t\t</button>\n";
-							echo "\t\t\t\t\t\t\t</div>\n";
-							echo "\t\t\t\t\t\t</td>\n";
-							echo "\t\t\t\t\t</tr>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('".$prj_id."','".$sec_id."','".$tbl_sec_id."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove'> 章の削除</span>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
 							
-							// Create a table for showing section list.
-							echo "\t\t\t\t\t<tr style='text-align: left;'>\n";
-							echo "\t\t\t\t\t\t<td style='vertical-align: middle;' colspan='3'>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveToSection('".$prj_id."','".$rep_id."','".$sec_id."');>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil'> 章の編集</span>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
 							
-							// Create the header row of the section list.
-							echo "\t\t\t\t\t\t\t<table id='".$tbl_sec_id."' class='table table'>\n";
-							echo "\t\t\t\t\t\t\t\t<tr style='text-align: left;'>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>セクション名</td>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>作成日</td>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>更新日</td>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'>更新者</td>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'></td>\n";
-							echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; text-align: center'></td>\n";
-							echo "\t\t\t\t\t\t\t\t</tr>\n";
-							
-							// Get a list of sections in this report.
-							$sql_sel_sec = "SELECT
-												uuid,
-												modified_by,
-												order_number,
-												section_name,
-												to_char(date_created, 'yyyy/mm/dd hh24:mm:ss') as date_created,
-												to_char(date_modified, 'yyyy/mm/dd hh24:mm:ss') as date_modified 
-												FROM section WHERE rep_id = '".$rep_id."' ORDER by order_number";
-							
-							// Excute the query and get the result of query.
-							$sql_res_sec = pg_query($conn, $sql_sel_sec);
-							if (!$sql_res_sec) {
-								// Print the error messages and exit routine if error occors.
-								echo "An error occurred in DB query.\n";
-								exit;
-							}
-							
-							// Fetch rows of projects. 
-							$rows_sec = pg_fetch_all($sql_res_sec);
-							$row_cnt_sec = 0 + intval(pg_num_rows($sql_res_sec));
-							
-							// For each row, HTML list is created and showed on browser.
-							foreach ($rows_sec as $row_sec){
-								// Get a value in each field.
-								$sec_id = $row_sec['uuid'];
-								$sec_mod = $row_sec['modified_by'];
-								$sec_onm = $row_sec['order_number'];
-								$sec_nam = $row_sec['section_name'];
-								$sec_dtc = $row_sec['date_created'];
-								$sec_dtm = $row_sec['date_modified'];
-								
-								// Get user name by uuid.
-								$sql_sel_mem = "SELECT username FROM member WHERE uuid = '" .$sec_mod. "'";
-								$sql_res_mem = pg_query($conn, $sql_sel_mem) or die('Query failed: ' . pg_last_error());
-								while ($row = pg_fetch_assoc($sql_res_mem)) {
-									$mem_nam = $row['username'];
-								}
-								
-								echo "\t\t\t\t\t\t\t\t<tr id='".$sec_id."' name='".$sec_onm."'>\n";
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;'>".$sec_nam."</td>\n";
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$sec_dtc."</td>\n";
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$sec_dtm."</td>\n";
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle;text-align:center'>".$mem_nam."</td>\n";
-								
-								// Control menu.
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px' id='sct_ctr_mv_".$sec_id."'>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t<div class='btn-group'>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_sct_up_".$sec_id."'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_itm_up'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveUp('".$tbl_sec_id."','".$sec_id."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-chevron-up'></span>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_sct_dwn_".$sec_id."'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_itm_dwn'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveDown('".$prj_id."','".$sec_id."','".$tbl_sec_id."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-chevron-down'></span>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t\t</div>\n";
-								echo "\t\t\t\t\t\t\t\t\t</td>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t<td style='vertical-align: middle; width:100px'>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>\n";
-								
-								// Create a button for moving to consolidation page.
-								echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-danger'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=deleteRow('".$prj_id."','".$sec_id."','".$tbl_sec_id."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-remove'> 章の削除</span>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t\t<button id='btn_add_prj'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."name='btn_add_prj'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."class='btn btn-sm btn-primary'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\t"."type='submit'\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t\tonclick=moveToSection('".$sec_id."','".$prj_id."','".$rep_id."');>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t\t<span class='glyphicon glyphicon-pencil'> 章の編集</span>\n";
-								echo "\t\t\t\t\t\t\t\t\t\t</button>\n";
-								
-								echo "\t\t\t\t\t\t\t\t\t\t</div>\n";
-								echo "\t\t\t\t\t\t\t\t\t</td>\n";
-								echo "\t\t\t\t\t\t\t\t\t</tr>\n";
-							}
-							echo "\t\t\t\t\t\t\t</table>\n";
-							echo "\t\t\t\t\t\t</td>\n";
-							echo "\t\t\t\t\t</tr>\n";
+							echo "\t\t\t\t\t\t\t\t\t\t</div>\n";
+							echo "\t\t\t\t\t\t\t\t\t</td>\n";
+							echo "\t\t\t\t\t\t\t\t\t</tr>\n";
 						}
-						// Close the connection to the database.
-						pg_close($conn);
-					?>
-				</table>
+						echo "\t\t\t\t\t\t\t</table>\n";
+						echo "\t\t\t\t\t\t\t<hr />\n";
+					}
+					// Close the connection to the database.
+					pg_close($conn);
+				?>
 			</div>
 		</div>
 		
 		<!-- Javascripts -->
 		<script language="JavaScript" type="text/javascript">
+			
 			function addSectionRow(prj_id, rep_id, crt_mem){
 				var tbl_id="tbl_sec_"+rep_id;
 				var tbl_sec=document.getElementById(tbl_id);
@@ -445,7 +491,7 @@
 				sct_itm_up.name="btn_sct_up_" + row_id;
 				
 				//var sct_itm_up_func = new Function("moveUp.call(this);");
-				var sct_itm_up_func = new Function("moveUp('"+ tbl_id + "','" + row_id + "');");
+				var sct_itm_up_func = new Function("moveUp('"+ tbl_id + "','" + row_id + "','" + rep_id +"');");
 				sct_itm_up.onclick=sct_itm_up_func;
 				
 				// Create a down button.btn_udt_sec_
@@ -455,7 +501,7 @@
 				sct_itm_dwn.id="btn_sct_dwn_" + row_id;
 				sct_itm_dwn.name="btn_sct_dwn_" + row_id;
 				
-				var sct_itm_dwn_func = new Function("moveDown('"+ tbl_id + "','" + row_id + "');");
+				var sct_itm_dwn_func = new Function("moveDown('"+ tbl_id + "','" + row_id + "','" + rep_id +"');");
 				sct_itm_dwn.onclick=sct_itm_dwn_func;
 				
 				// Add aicon of the button.
@@ -510,7 +556,7 @@
 				frm_sec_ctr.appendChild(sct_itm_dll);
 				sct_cll_edt.appendChild(frm_sec_ctr);
 				
-				var btn_update_id = '<?php echo "btn_udt_sec_".$rep_id; ?>';
+				var btn_update_id = "btn_udt_sec_" + rep_id;
 				var btn_update = document.getElementById(btn_update_id);
 				btn_update.style.display = "block";
 			}
@@ -640,18 +686,18 @@
 				return false;
 			}
 			
-			function moveUp(tbl_id, row_id){
+			function moveUp(tbl_id, row_id, rep_id){
 				rowUp(tbl_id, row_id);
 				
-				var btn_update_id = '<?php echo "btn_udt_sec_".$rep_id; ?>';
+				var btn_update_id = "btn_udt_sec_" + rep_id;
 				var btn_update = document.getElementById(btn_update_id);
 				btn_update.style.display = "block";
 			}
 			
-			function moveDown(tbl_id, row_id){
+			function moveDown(tbl_id, row_id, rep_id){
 				rowDown(tbl_id, row_id);
 				
-				var btn_update_id = '<?php echo "btn_udt_sec_".$rep_id; ?>';
+				var btn_update_id = "btn_udt_sec_" + rep_id;
 				var btn_update = document.getElementById(btn_update_id);
 				btn_update.style.display = "block";
 			}
@@ -661,11 +707,120 @@
 				return false;
 			}
 			
-			function moveToSection(uuid, prj_id, rep_id){
-				window.location.href = "section.php?uuid=" + uuid + "&prj_id=" + prj_id + "&rep_id=" + rep_id;
+			function moveToSection(prj_id, rep_id, sec_id){
+				var rep_form = document.createElement("form");
+				document.body.appendChild(rep_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_rep_id = document.createElement("input");
+				inp_rep_id.setAttribute("type", "hidden");
+				inp_rep_id.setAttribute("id", "rep_id");
+				inp_rep_id.setAttribute("name", "rep_id");
+				inp_rep_id.setAttribute("value", rep_id);
+				
+				var inp_sec_id = document.createElement("input");
+				inp_sec_id.setAttribute("type", "hidden");
+				inp_sec_id.setAttribute("id", "sec_id");
+				inp_sec_id.setAttribute("name", "sec_id");
+				inp_sec_id.setAttribute("value", sec_id);
+				
+				rep_form.appendChild(inp_prj_id);
+				rep_form.appendChild(inp_rep_id);
+				rep_form.appendChild(inp_sec_id);
+				
+				rep_form.setAttribute("action", "section.php");
+				rep_form.setAttribute("method", "post");
+				rep_form.submit();
+				
+				return false;
 			}
 			
-			
+			function updateReport(prj_id, rep_id){
+				var rep_form = document.createElement("form");
+				document.body.appendChild(rep_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_rep_id = document.createElement("input");
+				inp_rep_id.setAttribute("type", "hidden");
+				inp_rep_id.setAttribute("id", "rep_id");
+				inp_rep_id.setAttribute("name", "rep_id");
+				inp_rep_id.setAttribute("value", rep_id);
+				
+				var rep_ttl = document.getElementById("rep_ttl_" + rep_id).value;
+				var inp_rep_ttl = document.createElement("input");
+				inp_rep_ttl.setAttribute("type", "hidden");
+				inp_rep_ttl.setAttribute("id", "rep_ttl");
+				inp_rep_ttl.setAttribute("name", "rep_ttl");
+				inp_rep_ttl.setAttribute("value", rep_ttl);
+				
+				var rep_srs = document.getElementById("rep_srs_" + rep_id).value;
+				var inp_rep_srs = document.createElement("input");
+				inp_rep_srs.setAttribute("type", "hidden");
+				inp_rep_srs.setAttribute("id", "rep_srs");
+				inp_rep_srs.setAttribute("name", "rep_srs");
+				inp_rep_srs.setAttribute("value", rep_srs);
+				
+				var rep_pub = document.getElementById("rep_pub_" + rep_id).value;
+				var inp_rep_pub = document.createElement("input");
+				inp_rep_pub.setAttribute("type", "hidden");
+				inp_rep_pub.setAttribute("id", "rep_pub");
+				inp_rep_pub.setAttribute("name", "rep_pub");
+				inp_rep_pub.setAttribute("value", rep_pub);
+				
+				var rep_vol = document.getElementById("rep_vol_" + rep_id).value;
+				var inp_rep_vol = document.createElement("input");
+				inp_rep_vol.setAttribute("type", "hidden");
+				inp_rep_vol.setAttribute("id", "rep_vol");
+				inp_rep_vol.setAttribute("name", "rep_vol");
+				inp_rep_vol.setAttribute("value", rep_vol);
+				
+				var rep_yer = document.getElementById("rep_yer_" + rep_id).value;
+				var inp_rep_yer = document.createElement("input");
+				inp_rep_yer.setAttribute("type", "hidden");
+				inp_rep_yer.setAttribute("id", "rep_yer");
+				inp_rep_yer.setAttribute("name", "rep_yer");
+				inp_rep_yer.setAttribute("value", rep_yer);
+				
+				var rep_num = document.getElementById("rep_num_" + rep_id).value;
+				var inp_rep_num = document.createElement("input");
+				inp_rep_num.setAttribute("type", "hidden");
+				inp_rep_num.setAttribute("id", "rep_num");
+				inp_rep_num.setAttribute("name", "rep_num");
+				inp_rep_num.setAttribute("value", rep_num);
+				
+				var rep_dsc = document.getElementById("rep_dsc_" + rep_id).value;
+				var inp_rep_dsc = document.createElement("input");
+				inp_rep_dsc.setAttribute("type", "hidden");
+				inp_rep_dsc.setAttribute("id", "rep_dsc");
+				inp_rep_dsc.setAttribute("name", "rep_dsc");
+				inp_rep_dsc.setAttribute("value", rep_dsc);
+				
+				rep_form.appendChild(inp_prj_id);
+				rep_form.appendChild(inp_rep_id);
+				rep_form.appendChild(inp_rep_ttl);
+				rep_form.appendChild(inp_rep_srs);
+				rep_form.appendChild(inp_rep_pub);
+				rep_form.appendChild(inp_rep_yer);
+				rep_form.appendChild(inp_rep_vol);
+				rep_form.appendChild(inp_rep_num);
+				rep_form.appendChild(inp_rep_dsc);
+				
+				rep_form.setAttribute("action", "update_report.php");
+				rep_form.setAttribute("method", "post");
+				rep_form.submit();
+				
+				return false;
+			}
 		</script>
 	</body>
 </html>

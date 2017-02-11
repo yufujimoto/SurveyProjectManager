@@ -297,7 +297,7 @@
 														   name="inp_mat_end"
 														   style="width: 300px"
 														   value="<?php echo $mat_est_end; ?>"/>
-											</div>
+										</div>
 									</div>
 								</div>
 								<div class="input-group">

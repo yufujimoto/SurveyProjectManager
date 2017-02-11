@@ -74,7 +74,7 @@
 			} elseif ($trgt=="member") {
 				if($imgid != ""){
 					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";
-					echo "src='avatar_member_list.php?uuid=" . $imgid ."' alt='Uploaded image is invalid.'/>";
+					echo "src='avatar_member_list.php?mem_id=" . $imgid ."' alt='Uploaded image is invalid.'/>";
 				} else {
 					// Initialize the default image file name.		
 					echo "<img id='avatar' width=".$desired_width." height=".$desired_height." style='margin:0px auto;display:block' ";

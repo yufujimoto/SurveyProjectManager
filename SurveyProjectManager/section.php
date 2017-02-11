@@ -1,6 +1,8 @@
 <?php
-	// Start the session.
-	session_start();
+	// Start the session and unlock session file.
+	session_cache_limiter("private_no_expire");
+    session_start();
+    session_write_close();
 	
 	// Check session status.
 	if (!isset($_SESSION["USERNAME"])) {
@@ -9,15 +11,8 @@
 	}
 	
 	// Load external libraries.
-	require "lib/guid.php";
-	require "lib/config.php";
-	require_once "lib/tinymce/plugins/jbimages/config.php";
-	
-	define('TXT_IMG_PATH', '/project/SurveyProjectManager/uploads/hoge');
-	
-	
-	$config['img_path'] = TXT_IMG_PATH;
-	mkdir($config['img_path'],0777);
+	require_once "lib/guid.php";
+	require_once "lib/config.php";
 	
 	header("Content-Type: text/html; charset=UTF-8");
 	
@@ -25,7 +20,7 @@
 	$err = $_REQUEST["err"];
 	$prj_id= $_REQUEST['prj_id'];
 	$rep_id= $_REQUEST['rep_id'];
-	$sec_id= $_REQUEST['uuid'];
+	$sec_id= $_REQUEST['sec_id'];
 	
 	// Connect to the DB.
 	$conn = pg_connect(
@@ -277,17 +272,64 @@
 				}
 			}
 			
-			function backToReport(uuid) {
-				window.location.href = "report.php?uuid=" + uuid;
+			function backToReport(prj_id) {
+				var sec_form = document.createElement("form");
+				document.body.appendChild(sec_form);
+				
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				sec_form.appendChild(inp_prj_id);
+				
+				sec_form.setAttribute("action", "report.php");
+				sec_form.setAttribute("method", "post");
+				sec_form.submit();
+				
 				return false;
 			}
 			
-			function updateSection(uuid, prj_id, rep_id){
-				var writer = document.getElementById("writer").value;
-				var frm_txt = document.getElementById("frm_txt");
+			function updateSection(sec_id, prj_id, rep_id){
+				var sec_form = document.getElementById("frm_txt");
+				document.body.appendChild(sec_form);
 				
-				frm_txt.action="update_article.php?uuid=" + uuid + "&wrtr=" + writer + "&prj_id=" + prj_id + "&rep_id=" + rep_id;
-				frm_txt.submit();
+				var inp_prj_id = document.createElement("input");
+				inp_prj_id.setAttribute("type", "hidden");
+				inp_prj_id.setAttribute("id", "prj_id");
+				inp_prj_id.setAttribute("name", "prj_id");
+				inp_prj_id.setAttribute("value", prj_id);
+				
+				var inp_rep_id = document.createElement("input");
+				inp_rep_id.setAttribute("type", "hidden");
+				inp_rep_id.setAttribute("id", "rep_id");
+				inp_rep_id.setAttribute("name", "rep_id");
+				inp_rep_id.setAttribute("value", rep_id);
+				
+				var inp_sec_id = document.createElement("input");
+				inp_sec_id.setAttribute("type", "hidden");
+				inp_sec_id.setAttribute("id", "sec_id");
+				inp_sec_id.setAttribute("name", "sec_id");
+				inp_sec_id.setAttribute("value", sec_id);
+				
+				var sec_wrt = document.getElementById("writer").value;
+				var inp_sec_wrt = document.createElement("input");
+				inp_sec_wrt.setAttribute("type", "hidden");
+				inp_sec_wrt.setAttribute("id", "sec_wrt");
+				inp_sec_wrt.setAttribute("name", "sec_wrt");
+				inp_sec_wrt.setAttribute("value", sec_wrt);
+				
+				sec_form.appendChild(inp_prj_id);
+				sec_form.appendChild(inp_rep_id);
+				sec_form.appendChild(inp_sec_id);
+				sec_form.appendChild(inp_sec_wrt);
+				
+				sec_form.setAttribute("action", "update_article.php");
+				sec_form.setAttribute("method", "post");
+				sec_form.submit();
+				
+				return false;
 			}
 		</script>
 	</body>

@@ -177,7 +177,7 @@
 					<form id="selection">
 					<?php
 						foreach ($rows_mem as $row){
-							$mem_uuid = $row['uuid'];
+							$mem_id = $row['uuid'];
 							$mem_ava = $row['avatar'];
 							$mem_snm = $row['surname'];
 							$mem_fnm = $row['firstname'];
@@ -186,17 +186,17 @@
 							
 							echo "\t\t\t\t\t<tr style='text-align: center;'>\n";
 							echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-							echo "\t\t\t\t\t\t\t<input type='radio' name='member' value='" .$mem_uuid. "' />\n";
+							echo "\t\t\t\t\t\t\t<input type='radio' name='member' value='" .$mem_id. "' />\n";
 							echo "\t\t\t\t\t\t</td>";
 							if($mem_ava != ""){
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_uuid=" .$mem_uuid. "'>\n";
-								echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_uuid=" .$mem_uuid."' alt='img'/>\n";
+								echo "\t\t\t\t\t\t\t<a href='project_members_view.php?mem_id=" .$mem_id. "'>\n";
+								echo "\t\t\t\t\t\t\t\t<img height=64 width=64 src='avatar_member_list.php?mem_id=" .$mem_id."' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";
 							} else {
 								echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
-								echo "\t\t\t\t\t\t\t<<a href='project_members_view.php?mem_uuid=" .$mem_uuid. "'>\n";
+								echo "\t\t\t\t\t\t\t<<a href='project_members_view.php?mem_id=" .$mem_id. "'>\n";
 								echo "\t\t\t\t\t\t\t\t<img height=64 width=64  src='images/avatar.jpg' alt='img'/>\n";
 								echo "\t\t\t\t\t\t\t\t\t</a>\n";
 								echo "\t\t\t\t\t\t</td>\n";

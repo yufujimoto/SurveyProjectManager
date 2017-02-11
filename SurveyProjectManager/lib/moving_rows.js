@@ -27,7 +27,6 @@ function rowUp(tbl_id, row_id){
         var tableNode = row.parentNode;
         tableNode.insertBefore ( row, get_previoussibling( row ) );
     }
-    
 }
 
 function rowDown(tbl_id, row_id){

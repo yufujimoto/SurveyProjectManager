@@ -236,13 +236,9 @@
 							// Create a thumbnail image container.
 							echo "\t\t\t\t\t\t<td style='vertical-align: middle;'>\n";
 							if($con_fim != ""){
-								echo "\t\t\t\t\t\t\t<a href='edit_consolidation.php?uuid=" .$con_uuid. "'>\n";
-								echo "\t\t\t\t\t\t\t\t<img height=200 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/>\n";
-								echo "\t\t\t\t\t\t\t</a>\n";
+								echo "\t\t\t\t\t\t\t<img height=200 src='avatar_consolidation_face.php?uuid=" .$con_uuid."' alt='img'/>\n";
 							} else {
-								echo "\t\t\t\t\t\t\t<<a href='edit_consolidation.php?uuid=" .$con_uuid. "'>\n";
-								echo "\t\t\t\t\t\t\t\t<img height=200 src='images/noimage.jpg' alt='img'/>\n";
-								echo "\t\t\t\t\t\t\t</a>\n";
+								echo "\t\t\t\t\t\t\t<img height=200 src='images/noimage.jpg' alt='img'/>\n";
 							}
 							echo "\t\t\t\t\t\t</td>\n";
 							
