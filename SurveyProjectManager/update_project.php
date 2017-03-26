@@ -9,6 +9,7 @@
 	  header("Location: logout.php");
 	  exit;
 	}
+	echo $_SERVER["SERVER_NAME"];
 	
 	// Load external libraries.
 	require_once "lib/guid.php";

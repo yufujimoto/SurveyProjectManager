@@ -72,7 +72,7 @@
     $htm_mta = '<meta http-equiv="content-type" content="text/html; charset=utf-8"/>';
 	
 	// Replace special characters.
-	$htm_bdy = str_replace("\n","",str_replace("&#13;","",$_REQUEST['intro']));
+	$htm_bdy = str_replace("\n","",str_replace("&#13;","",$_REQUEST['sec_txt']));
 	
 	// Add html tag elements o convert DOM document.
     $htm_bdy = $htm_mta."<html><body>".$htm_bdy."</body></html>";
@@ -348,7 +348,7 @@
 	
     // Get arrays of entries.
 	$sec_mod = str_replace("''","NULL","'".$mem_id."'");
-    $sec_wrt = str_replace("''","'匿名'","'".$_REQUEST["wrtr"]."'");
+    $sec_wrt = str_replace("''","'匿名'","'".$_REQUEST["sec_wrt"]."'");
 	$today = date("Y-m-d H:i:s");
 	$sec_mdt = str_replace("''","NULL","'".$today."'");
 	$sec_bdy = str_replace("''","NULL","'".htmlspecialchars($txt_bdy)."'");

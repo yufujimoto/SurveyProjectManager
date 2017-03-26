@@ -1,17 +1,6 @@
 <?php
 	// Start the session.
     session_start();
-    
-    // Check session status.
-    if (!isset($_SESSION["USERNAME"])) {
-      header("Location: logout.php");
-      exit;
-    }
-	
-	// Only the administrator can access to this page.
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
 	
 	// Load external libraries.
 	require "lib/guid.php";
@@ -38,7 +27,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
@@ -288,7 +277,10 @@
 						<td colspan="4"><input class="form-control" type='text' name="org_cty" placeholder="市町村名"/></td>
 					</tr>
 					<tr><td colspan=11><input class="form-control" type='text' name="org_add" placeholder="住所"/></tr>
-					<tr><td colspan=12 style="text-align: right"><button class="btn btn-md btn-success" type="submit" value="registeration"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> このユーザー追加する</button></td></tr>
+					<tr><td colspan=12 style="text-align: right">
+					<button class="btn btn-md btn-success" type="submit" value="registeration">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> このユーザー追加する
+					</button></td></tr>
 				</table>
 				<input type="hidden" name="mem_avt" value="<?php echo $tmp_name;?>.jpg">
 			</form>

@@ -1,3 +1,6 @@
+# Excute below script.
+# main(dbname, user, passwd, csvfl)
+from sys import argv
 import sys, os, getopt, psycopg2, argparse, inspect, numpy, zbar, math, csv, uuid
 from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -339,8 +342,8 @@ def main(dbname, user, passwd, csvfl):
             matnum = row[3]
             dscrpt = row[4]
             
-            jpgfile = os.path.join(os.path.join(dir_img,"jpg"),filenam)
-            thmfile = os.path.join(os.path.join(dir_img,"thums"),filenam)
+            jpgfile = os.path.join(os.path.join(dir_img,"Main"),filenam)
+            thmfile = os.path.join(os.path.join(dir_img,"Thumbs"),filenam)
             
             # Create a thumbnail of original Image if not exists.
             if not os.path.exists(thmfile):
@@ -466,8 +469,7 @@ def main(dbname, user, passwd, csvfl):
     cur.close();
     con.close();
 
-# Excute below script.
-# main(dbname, user, passwd, csvfl)
+
 if __name__ == "__main__":
     # Path to an original xml file object.
     if len(argv) < 4: exit(1)

@@ -81,7 +81,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import modal CSS -->
@@ -263,6 +263,15 @@
 						<td id="td_mat_inf" style='vertical-align: top; width: 500px'>
 							<div id="mat_bsc_inf" name="mat_bsc_inf">
 								<h4>基本属性</h4>
+								<div id="mat_uid" class="input-group">
+									<span class="input-group-addon" style="width: 100px">mat_id:</span>
+									<input class="form-control"
+												   type="text"
+												   name="inp_mat_uid"
+												   style="width: 354px"
+												   readonly 
+												   value="<?php echo $mat_id; ?>"/>
+								</div>
 								<div id="mat_num" class="input-group">
 									<span class="input-group-addon" style="width: 100px">資料番号:</span>
 									<input class="form-control"

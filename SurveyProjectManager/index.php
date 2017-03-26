@@ -101,7 +101,7 @@
 		<meta name="Yu Fujimoto" content="">
 		<link rel="icon" href="../favicon.ico">
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<link href="../theme.css" rel="stylesheet">
     </head>
     <body>

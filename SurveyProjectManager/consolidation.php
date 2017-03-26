@@ -68,7 +68,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
@@ -194,10 +194,10 @@
 							// -------------------------------
 							// Header row
 							echo "\t\t\t\t\t<tr style='text-align: left;'>\n";
-							echo "\t\t\t\t\t\t<td style='vertical-align: middle;' colspan='2'><h3>". $con_nam. "</h3></td>";
-							echo "\t\t\t\t\t\t<td style='vertical-align: middle; text-align:right'>";
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle;' colspan='2'><h3>". $con_nam. "</h3><p>con_id: $con_uuid</p></td>";
 							
 							// Control menue
+							echo "\t\t\t\t\t\t<td style='vertical-align: middle; text-align:right'>";
 							echo "\t\t\t\t\t\t\t\t<div class='btn-group-vertical'>";
 							// Create a button for operation.
 							if ($_SESSION["USERTYPE"] == "Administrator") {

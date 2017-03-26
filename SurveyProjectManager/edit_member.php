@@ -9,11 +9,6 @@
       exit;
     }
 	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-		exit;
-	}
-	
 	// Load external libraries.
 	require_once "lib/guid.php";
     require_once "lib/config.php";
@@ -146,7 +141,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<script type="text/javascript" src="lib/refreshImage.js"></script>
@@ -591,6 +586,7 @@
 			
 			function updateMember(mem_id, tmp_nam){
 				var mem_form = document.createElement("form");
+				document.body.appendChild(mem_form);
 				
 				var inp_mem_id = document.createElement("input");
 				inp_mem_id.setAttribute("type", "hidden");

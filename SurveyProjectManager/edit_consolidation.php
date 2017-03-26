@@ -8,10 +8,6 @@
       exit;
     }
 	
-	if ($_SESSION["USERTYPE"] != "Administrator") {
-		header("Location: main.php");
-	}
-	
 	// Load external libraries.
 	require 'lib/guid.php';
     require "lib/config.php";
@@ -97,7 +93,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->

@@ -4,7 +4,7 @@
     
     function moveToLocal($local_page, $data){
         // Get the URL with protocol return to. 
-        $url = (empty($_SERVER["HTTPS"]) ? "http://" : "https://").$_SERVER["HTTP_HOST"].FULLPATH."/".$local_page;
+        $url = (empty($_SERVER["HTTPS"]) ? "http://" : "https://").$_SERVER["SERVER_NAME"]."/".FULLPATH."/".$local_page;
         
         // Use key 'http' even if you send the request to https://...
         $options = array(

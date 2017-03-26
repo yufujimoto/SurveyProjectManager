@@ -70,7 +70,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import modal CSS -->
@@ -597,7 +597,7 @@
 					rep_form.setAttribute("method", "post");
 					rep_form.submit();
 					
-					return false;
+					alert("hoge");
 				}
 			}
 			

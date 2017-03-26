@@ -1,0 +1,128 @@
+@font-face {
+	font-family: 'HuiFont';
+	src:
+		url('bootstrap/fonts/HuiFont.ttf') format('truetype'),
+		url('bootstrap/fonts/HuiFont.otf') format('opentype'),
+		url('bootstrap/fonts/HuiFont.woff') format('woff') ;
+		
+}
+
+body {
+	font-size:14px;
+	padding-top: 30px;
+	padding-bottom: 30px;
+	width: auto;
+	margin: 0 auto;
+}
+
+.theme-dropdown .dropdown-menu {
+	position: static;
+	display: block;
+	margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+	margin: 5px 0;
+}
+
+.theme-showcase .navbar .container {
+	width: auto;
+}
+
+p {
+	font-size: 100%;
+	line-height: 1.5;
+}
+
+.caption{
+	text-align: center;
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+.map {
+	height: 380px;
+	width: 750px
+}
+
+.map2 {
+	height: 400px;
+	width: 550px
+}
+
+.btn-file {
+	position: relative;
+	overflow: hidden;
+}
+.btn-file input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	background: red;
+	cursor: inherit;
+	display: block;
+}
+input[readonly] {
+	background-color: white !important;
+	cursor: text !important;
+}
+
+.blink {
+		animation-duration: 1s;埋め込み
+		animation-name: blink;
+		animation-iteration-count: infinite;
+		animation-direction: alternate;
+		animation-timing-function: ease-in-out;
+}
+@keyframes blink {
+		from {
+				opacity: 1;
+		}
+		to {
+				opacity: 0;
+		}
+}
+
+.container-fluid {
+	text-align: center;
+}
+body .btn {
+	outline: 0 !important;
+	outline-offset: 0	!important;
+	background-image: none	!important;
+	-webkit-box-shadow: none !important;
+	box-shadow: none	!important;
+}
+.btn.active.focus,
+.btn.active:focus,
+.btn.focus,
+.btn.focus:active,
+.btn:active:focus,
+.btn:focus {
+	outline: 0 !important;
+	outline-offset: 0	!important;
+	background-image: none	!important;
+	-webkit-box-shadow: none !important;
+	box-shadow: none	!important;
+}
+
+
+figure.align-left{float:left}
+figure.align-right{float:right}
+figure.image.align-center{
+	display:table;margin-left:auto;margin-right:auto
+}
+figure.image{
+	display:inline-block;
+	border:1px solid gray;
+	margin:0 2px 0 1px;
+	background:#f5f2f0;
+	text-align: center}
+figure.image
+figcaption{margin:6px 8px 6px 8px;text-align:center}

@@ -37,7 +37,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import modal CSS -->
@@ -325,9 +325,11 @@
 			</div>
 		</div>
 		
-		<script>
+		<!-- Javascripts -->
+		<script language="JavaScript" type="text/javascript">
 			function addNewProject(tmp_nam){
 				var prj_form = document.createElement("form");
+				document.body.appendChild(prj_form);
 				
 				var inp_img_fl = document.createElement("input");
 				inp_img_fl.setAttribute("type", "hidden");
@@ -401,15 +403,15 @@
 				prj_form.appendChild(inp_prj_cas);
 				prj_form.appendChild(inp_prj_dsc);
 				
-				prj_form.setAttribute("action", "test.php");
+				prj_form.setAttribute("action", "insert_project.php");
 				prj_form.setAttribute("method", "post");
 				prj_form.submit();
 				
 				return false;
 			}
 			
-			function backToProject() {
-				window.location.href = "project.php";
+			function backToMyPage() {
+				window.location.href = "main.php";
 				return false;
 			}
 		</script>

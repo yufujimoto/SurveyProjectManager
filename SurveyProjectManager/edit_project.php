@@ -84,7 +84,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import modal CSS -->
@@ -849,6 +849,7 @@
 			
 			function updateProject(prj_id,tmp_nam){
 				var prj_form = document.createElement("form");
+				document.body.appendChild(prj_form);
 				
 				var inp_prj_id = document.createElement("input");
 				inp_prj_id.setAttribute("type", "hidden");

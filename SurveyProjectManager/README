@@ -1,0 +1,8 @@
+You need configure bellow files before using SurveyProjectManager.
+/lib/config.php
+
+If you want to use TinyMCE for writing reports, you need to configure upload path of JBImages plugin.
+/lib/tinymce/plugins/jbimages/config.php
+
+If you use the web publishing template, you need to configure the below file.
+/source/project_template/lib/config.php

@@ -15,8 +15,6 @@
 		'prj_id' => $_REQUEST['prj_id']
 	);
 	
-	echo $returnTo;
-	
 	// Get the project ids from previous page.
 	$prj_id = $_REQUEST['prj_id'];
 	$rep_id = $_REQUEST['rep_id'];

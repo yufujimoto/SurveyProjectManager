@@ -25,7 +25,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
@@ -85,6 +85,8 @@
                                 elseif ($data[$col]=="descriptions"){$dsc = $col; echo "<th style='text-align:center'>descriptions</th>";}
                                 elseif ($data[$col]=="material_number"){$mid = $col; echo "<th style='text-align:center'>material_number</th>";}
                                 elseif ($data[$col]=="material_to_material"){$m2m = $col; echo "<th style='text-align:center'>relation</th>";}
+                                elseif ($data[$col]=="latitude"){$lat = $col; echo "<th style='text-align:center'>latitude</th>";}
+                                elseif ($data[$col]=="longitude"){$lon = $col; echo "<th style='text-align:center'>longitude</th>";}
                                 else {echo "<th>".$data[$col]."</th>";}
                             }
                         } else {
@@ -97,6 +99,9 @@
                                 elseif ($col == $dsc){$descriptions = $data[$col]; echo "<td style='text-align:left;'>$descriptions</td>";}
                                 elseif ($col == $mid){$material_number = $data[$col]; echo "<td style='text-align:center;'>$material_number</td>";}
                                 elseif ($col == $m2m){$material2material = $data[$col]; echo "<td style='text-align:center;'>$material2material</td>";}
+                                elseif ($col == $lat){$latitude = $data[$col]; echo "<td style='text-align:center;'>$latitude</td>";}
+                                elseif ($col == $lon){$longitude = $data[$col]; echo "<td style='text-align:center;'>$longitude</td>";}
+                                
                                 else {
                                     array_push($cstm_name, $headers[$col]);
                                     array_push($cstm_item, $data[$col]);
@@ -108,6 +113,9 @@
                         // Add relationships to the list.
                         array_push($rel_from, $material_number);
                         array_push($rel_to, $material2material);
+                        
+                        
+                        
                         
                         //==========================================
                         //            Insert Materials
@@ -121,7 +129,15 @@
                         $mat_est_end = str_replace("''", "NULL", "'".$est_end."'");
                         $mat_dsc = str_replace("''", "NULL", "'".$descriptions."'");
                         $mat_num = str_replace("''", "NULL", "'".$material_number."'");
-                        
+                        if ($latitude!=""){
+                            if ($longitude!=""){
+                                $mat_rep = "ST_SetSRID(ST_MakePoint($longitude, $latitude), ".SRID.")";
+                            } else {
+                                $mat_rep = "NULL";
+                            }
+                        } else {
+                            $mat_rep = "NULL";
+                        }
                         
                         // Parse locational information if exists.
                         if ($lat!="NULL" and $lon!="NULL"){
@@ -139,6 +155,7 @@
                                                 name,
                                                 estimated_period_beginning,
                                                 estimated_period_ending,
+                                                represented_point,
                                                 material_number,
                                                 descriptions
                                             ) VALUES (
@@ -147,6 +164,7 @@
                                                 $mat_neme,
                                                 $mat_est_bgn,
                                                 $mat_est_end,
+                                                $mat_rep,
                                                 $mat_num,
                                                 $mat_dsc
                                             )";

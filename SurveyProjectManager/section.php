@@ -85,7 +85,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import modal CSS -->
@@ -93,7 +93,7 @@
 		
 		<!-- Import external scripts for Bootstrap CSS -->
 		<script src="lib/jquery-3.1.1/jquery.min.js"></script>
-		\n
+		
 		<script src="../bootstrap/js/bootstrap.js"></script>
 		<script src="../bootstrap/js/bootstrap.min.js"></script>
 		
@@ -121,13 +121,14 @@
 				plugins: [
 					'advlist autolink image link lists charmap print preview hr anchor pagebreak spellchecker',
 					'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
-					'save table contextmenu directionality emoticons template paste textcolor jbimages'
+					'save table contextmenu directionality emoticons template paste textcolor jbimages code'
 				],
-				toolbar: 'insertfile undo redo |styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image jbimages | print preview media fullpage | forecolor backcolor emoticons',
+				toolbar: 'insertfile undo redo |styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image jbimages | print preview media fullpage | forecolor backcolor emoticons | code',
 				image_caption: true,
 				relative_urls: false,
 				image_advtab: true,
-				image_description: true
+				image_description: true,
+				menubar: "tools"
 			});
 			
 			function doOnLoad(){
@@ -242,7 +243,7 @@
 											   id="writer" value='<?php echo $sec_wtr;?>'/>
 							</p>
 							<form id="frm_txt" method="post">
-								<textarea id="sec_txt" class='form-control' style='resize: none;'rows='50' name='intro'></textarea>
+								<textarea id="sec_txt" class='form-control' style='resize: none;'rows='50' name='sec_txt'></textarea>
 							</form>
 							
 						</td>

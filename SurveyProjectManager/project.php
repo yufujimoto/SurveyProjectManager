@@ -76,7 +76,7 @@
 		<meta http-equiv="Content-Style-Type" content="text/css" />
 		<meta name="Yu Fujimoto" content="" />
 		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet" />
+		<link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../theme.css" rel="stylesheet" />
 		
 		<!-- Import external scripts for Bootstrap CSS -->
@@ -285,8 +285,6 @@
 							main_form.setAttribute("method", "post");
 							main_form.submit();
 							
-							// only one radio can be logically checked, don"t check the rest
-							break;
 						}
 					}
 				} catch(e){ alert(e); }
